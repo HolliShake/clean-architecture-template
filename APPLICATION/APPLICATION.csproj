@@ -8,9 +8,8 @@
 
   <ItemGroup>
     <Folder Include="Dto\" />
-    <Folder Include="IService\" />
-    <Folder Include="Mapper\" />
 	  <Folder Include="Jwt\" />
+	  <Folder Include="Mapper\" />
   </ItemGroup>
 
   <ItemGroup>
