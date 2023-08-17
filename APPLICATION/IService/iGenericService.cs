@@ -1,6 +1,6 @@
 ﻿namespace APPLICATION.IService;
 
-public interface IGenericService <TModel>
+public interface IGenericService<TModel>
 {
 }
 
