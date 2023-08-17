@@ -1,10 +1,8 @@
 ﻿using DOMAIN.Model;
 using INFRASTRUCTURE.Data;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace INFRASTRUCTURE;
 
