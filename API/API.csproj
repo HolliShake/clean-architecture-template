@@ -19,4 +19,16 @@
     <ProjectReference Include="..\INFRASTRUCTURE\INFRASTRUCTURE.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="**\*.cshtml" />
+    <_ContentIncludedByDefault Remove="**\*.razor" />
+    <_ContentIncludedByDefault Remove="**\*.config" />
+    <_ContentIncludedByDefault Remove="**\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="**\*.razor" />
+    <UpToDateCheckInput Remove="**\*.cshtml" />
+  </ItemGroup>
+
 </Project>

@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using API;
 using APPLICATION;
 using INFRASTRUCTURE;
@@ -31,7 +32,9 @@ app.UseCors(x => x
     .AllowCredentials()); // allow credential
 
 // Hosting
-var path = Path.Combine(builder.Configuration["File:Location"], builder.Configuration["File:Destination"]);
+var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+    ? Path.Combine(builder.Configuration["File:LocationWIN32"], builder.Configuration["File:DestinationWIN32"])
+    : Path.Combine(builder.Configuration["File:LocationLINUX"], builder.Configuration["File:DestinationLINUX"]);
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(path),

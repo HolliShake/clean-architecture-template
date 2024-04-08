@@ -1,4 +1,5 @@
-﻿using INFRASTRUCTURE.Data;
+﻿using System.Runtime.InteropServices;
+using INFRASTRUCTURE.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -11,7 +12,9 @@ public class ApiInjector
     {
         // Sql
         services.AddDbContext<AppDbContext>(option => option.UseSqlServer(
-            configuration.GetConnectionString("win32")
+            (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+                ? configuration.GetConnectionString("win32")
+                : configuration.GetConnectionString("linux")
         ));
 
         // Cors
@@ -22,7 +25,6 @@ public class ApiInjector
         {
             options.AllowSynchronousIO = true;
         });
-
 
         // Swagger
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -53,7 +55,9 @@ public class ApiInjector
         });
 
         // File hosting
-        var path = Path.Combine(configuration["File:Location"], configuration["File:Destination"]);
+        var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Path.Combine(configuration["File:LocationWIN32"], configuration["File:DestinationWIN32"])
+            : Path.Combine(configuration["File:LocationLINUX"], configuration["File:DestinationLINUX"]);
 
         if (!Directory.Exists(path))
         {

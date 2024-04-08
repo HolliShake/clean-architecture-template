@@ -1,5 +1,7 @@
-﻿using DOMAIN.Model;
+﻿using APPLICATION.IService;
+using DOMAIN.Model;
 using INFRASTRUCTURE.Data;
+using INFRASTRUCTURE.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,8 +13,7 @@ public class InfraInjector
     public static void Inject(IServiceCollection services, ConfigurationManager configuration)
     {
         // Inject services
-        // services.AddScoped</*IService0*/, /*Service0*/>();
-        // services.AddScoped</*IService1*/, /*Service1*/>();
+        services.AddScoped<IUserService, UserService>();
 
         // Identity
         services.AddIdentity<User, IdentityRole>()

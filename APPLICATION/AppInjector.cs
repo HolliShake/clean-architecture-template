@@ -1,4 +1,5 @@
-﻿using CQI.APPLICATION.Jwt;
+﻿using APPLICATION.Mapper;
+using CQI.APPLICATION.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,10 +11,10 @@ public class AppInjector
     public static void Inject(IServiceCollection services, ConfigurationManager configuration)
     {
         // AutoMaper
-        // services.AddAutoMapper(
-        //    typeof(/*Mapper0*/),
-        //    typeof(/*Mapper1*/),
-        // );
+        services.AddAutoMapper(
+           typeof(UserMapper)
+           // typeof(/*MapperProfile*/)
+        );
 
         // Jwt
         var cfg = new JwtTokenConfig(
