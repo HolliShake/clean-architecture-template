@@ -11,6 +11,7 @@ using Microsoft.Net.Http.Headers;
 namespace API.Controllers;
 
 [ApiController]
+[Route("[controller]")]
 public class AuthController:ControllerBase
 {
     private readonly ConfigurationManager _config;
