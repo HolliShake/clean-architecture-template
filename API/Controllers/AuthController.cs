@@ -1,8 +1,8 @@
 using APPLICATION.Dto.Auth;
-using APPLICATION.IService;
 using AutoMapper;
 using CQI.APPLICATION.Jwt;
 using DOMAIN.Model;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,15 +10,18 @@ using Microsoft.Net.Http.Headers;
 
 namespace API.Controllers;
 
+[ApiController]
 public class AuthController:ControllerBase
 {
+    private readonly ConfigurationManager _config;
     private readonly IMapper _mapper;
-    private readonly JwtAuthManager _jwtAuthManager;
+    private readonly IJwtAuthManager _jwtAuthManager;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     
-    public AuthController(IMapper mapper, JwtAuthManager jwtAuthManager, UserManager<User> userManager, SignInManager<User> signInManager)
+    public AuthController(ConfigurationManager config, IMapper mapper, IJwtAuthManager jwtAuthManager, UserManager<User> userManager, SignInManager<User> signInManager)
     {
+        _config = config;
         _mapper = mapper;
         _jwtAuthManager = jwtAuthManager;
         _userManager = userManager;
@@ -53,7 +56,7 @@ public class AuthController:ControllerBase
         //     return Unauthorized("Email is not authorized");
         // }
 
-        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, "[]");
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
 
         var userData = _mapper.Map<AuthDataDto>(user);
         userData.AccessToken = /**/
@@ -62,6 +65,82 @@ public class AuthController:ControllerBase
             token.RefreshToken.TokenString;
 
         return Ok(userData);
+    }
+    
+    [HttpPost("/[controller]/google-signin")]
+    public async Task<ActionResult> GoogleLogin(GoogleDto google)
+    {
+        Console.WriteLine(google.GToken);
+        
+        var settings = new GoogleJsonWebSignature.ValidationSettings
+        {
+            // Change this to your google client ID
+            Audience = new List<string>() { _config["Auth:Google:ClientId"] }
+        };
+
+        var payload  = GoogleJsonWebSignature.ValidateAsync(google.GToken, settings).Result;
+
+        if (payload == null)
+        {
+            goto error;
+        }
+
+        if (payload.Email != null)
+        {
+            goto ok;
+        }
+        
+        error:;
+        return BadRequest("Invalid google signin!");
+        
+        ok:;
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+
+        if (user != null)
+        {
+            goto final;
+        }
+        /****** Create new user *****/
+        user = new User
+        {
+            Email = payload.Email,
+            UserName = payload.Email,
+            FirstName = payload.GivenName,
+            LastName = payload.FamilyName,
+            EmailConfirmed = payload.EmailVerified,
+            Role = "[{ \"subject\": \"auth\", \"action\": \"read\" }]"
+        };
+
+        var result = await _userManager.CreateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            goto error;
+        }
+        
+        final:;
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
+        
+        var userData = _mapper.Map<AuthDataDto>(user);
+        userData.AccessToken = /**/
+            token.AccessToken;
+        userData.RefreshToken = /**/
+            token.RefreshToken.TokenString;
+        
+        return Ok(userData);
+    }
+    
+    [HttpPost("/[controller]/register")]
+    public async Task<ActionResult> Register(AuthRegisterDto registrationForm)
+    {
+        var result = await _userManager.CreateAsync(_mapper.Map<User>(registrationForm), registrationForm.Password);
+
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+
+        return BadRequest(result.Errors);
     }
     
     [Authorize]
