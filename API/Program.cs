@@ -6,6 +6,9 @@ using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Configuration
+builder.Services.AddSingleton(builder.Configuration);
+
 // Add services to the container.
 // Infra dependency injection
 InfraInjector.Inject(builder.Services, builder.Configuration);
