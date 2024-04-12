@@ -4,6 +4,7 @@ using AutoMapper;
 using CQI.APPLICATION.Jwt;
 using DOMAIN.Model;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -116,7 +117,7 @@ public class AuthController:ControllerBase
             FirstName = payload.GivenName,
             LastName = payload.FamilyName,
             EmailConfirmed = payload.EmailVerified,
-            Role = "[{ \"subject\": \"auth\", \"action\": \"read\" }]"
+            Role = "[{ \"subject\": \"Auth\", \"action\": \"read\" }]"
         };
 
         var result = await _userManager.CreateAsync(user);
@@ -164,11 +165,10 @@ public class AuthController:ControllerBase
     /// ReAuthenticate every page refresh (must use authentication context in UI).
     /// </summary>
     /// <returns>AuthData|Errors</returns>
-    [Authorize]
     [HttpGet("/Api/[controller]/authenticate")]
     public async Task<ActionResult> Authenticate()
     {
-        var accessToken = Request.Headers[HeaderNames.Authorization];
+        var accessToken = HttpContext.Request.Headers["Authorization"].ToString().Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
         var principal = _jwtAuthManager.DecodeJwtToken(accessToken);
         var userId = principal.Item1.FindFirst(type => type.Type == ClaimTypes.NameIdentifier)?.Value;
         

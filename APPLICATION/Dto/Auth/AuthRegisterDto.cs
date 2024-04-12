@@ -19,5 +19,5 @@ public class AuthRegisterDto
     public string? LastName { get; set; }
     public string? Address { get; set; }
     public DateTime? BirthDate { get; set; }
-    public string Role { get; set; } = "[{ \"subject\": \"auth\", \"action\": \"read\" }]";
+    public string Role { get; set; } = "[{ \"subject\": \"Auth\", \"action\": \"read\" }]";
 }

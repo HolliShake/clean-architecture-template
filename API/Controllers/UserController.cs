@@ -9,7 +9,7 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController : GenericController<User, IUserService, UserDto, GetUserDto>
+public class UserController : GenericActionController<User, IUserService, UserDto, GetUserDto>
 {
     public UserController(IMapper mapper, IUserService repo):base(mapper, repo)
     {
