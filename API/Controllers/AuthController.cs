@@ -66,6 +66,7 @@ public class AuthController:ControllerBase
         var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
 
         var userData = _mapper.Map<AuthDataDto>(user);
+        userData.IsGoogle = false;
         userData.AccessToken = /**/
             token.AccessToken;
         userData.RefreshToken = /**/
@@ -136,6 +137,7 @@ public class AuthController:ControllerBase
         var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
         
         var userData = _mapper.Map<AuthDataDto>(user);
+        userData.IsGoogle = true;
         userData.AccessToken = /**/
             token.AccessToken;
         userData.RefreshToken = /**/
@@ -160,6 +162,63 @@ public class AuthController:ControllerBase
 
         return BadRequest(result.Errors);
     }
+
+    [HttpPost("/Api/[controller]/generate/{secret}")]
+    public async Task<ActionResult> GenerateAdmin(string secret)
+    {
+        var old = await _userManager.FindByEmailAsync(_config["Admin:Email"]);
+        var user = new User
+        {
+            Email = _config["Admin:Email"],
+            UserName = _config["Admin:Username"],
+            FirstName = _config["Admin:Firstname"],
+            LastName = _config["Admin:Lastname"],
+            EmailConfirmed = true,
+            Role = "[" +
+                   "{ \"subject\": \"Auth\" , \"action\": \"read\"   }," +
+                   "{ \"subject\": \"Admin\", \"action\": \"read\"   }," +
+                   "{ \"subject\": \"Admin\", \"action\": \"create\" }," +
+                   "{ \"subject\": \"Admin\", \"action\": \"update\" }," +
+                   "{ \"subject\": \"Admin\", \"action\": \"delete\" }"  +
+                   "]"
+        };
+        
+        if (!secret.SequenceEqual(_config["Admin:Secret"]))
+        {
+            goto bad;
+        }
+
+        if (old != null)
+        {
+            // Already exists!
+            goto update;
+        }
+
+        // Create
+        var result = await _userManager.CreateAsync(user);
+
+        if (result.Succeeded)
+        {
+            goto ok;
+        }
+
+        goto bad;
+        
+        update:;
+        old.Role = (old.Role.Length > user.Role.Length) ? old.Role : user.Role ;
+        old.EmailConfirmed = old.EmailConfirmed || user.EmailConfirmed;
+        var updateResult = await _userManager.UpdateAsync(old);
+        if (updateResult.Succeeded)
+        {
+            goto ok;
+        }
+        
+        bad:;
+        return BadRequest("Failed to create admin user.");
+        
+        ok:;
+        return Ok(old ?? user);
+    }
     
     /// <summary>
     /// ReAuthenticate every page refresh (must use authentication context in UI).
@@ -169,6 +228,12 @@ public class AuthController:ControllerBase
     public async Task<ActionResult> Authenticate()
     {
         var accessToken = HttpContext.Request.Headers["Authorization"].ToString().Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
+
+        if (accessToken.Length <= 0)
+        {
+            goto bad;
+        }
+        
         var principal = _jwtAuthManager.DecodeJwtToken(accessToken);
         var userId = principal.Item1.FindFirst(type => type.Type == ClaimTypes.NameIdentifier)?.Value;
         

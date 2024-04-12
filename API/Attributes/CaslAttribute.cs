@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using CQI.APPLICATION.Jwt;
@@ -38,6 +39,11 @@ public class CaslAttribute:Attribute, IAuthorizationFilter
         {
             goto bad;
         }
+
+        if (accessToken.Length <= 0)
+        {
+            goto bad;
+        }
         
         var principal = _jwtAuthManager.DecodeJwtToken(accessToken);
         var role = principal.Item1.FindFirst(c => c.Type == ClaimTypes.Role)?.Value;
@@ -65,11 +71,15 @@ public class CaslAttribute:Attribute, IAuthorizationFilter
             if (matches <= 0)
             {
                 goto bad;
-            } 
+            }
+
             return;
         }
         
         bad:;
         context.Result = new UnauthorizedResult();
+        context.HttpContext.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+        context.HttpContext.Response.CompleteAsync();
+        return;
     }
 }

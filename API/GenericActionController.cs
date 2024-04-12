@@ -20,7 +20,7 @@ public class
     /// </summary>
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[TItem]</returns>
-    [Casl("Auth:read", "Admin:read" )]
+    [Casl("Admin:read" )]
     [HttpGet("/Api/[controller]/all")]
     public async Task<ActionResult> GetAllAction()
     {
