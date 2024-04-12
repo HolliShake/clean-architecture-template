@@ -60,12 +60,17 @@ public class ApiInjector
                     Type = ReferenceType.SecurityScheme
                 }
             };
-
+            
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = configuration["App"], Description = "Api description here...", Version = "v1" });
+          
+            var filePath = Path.Combine(System.AppContext.BaseDirectory, "API.xml");
+            options.IncludeXmlComments(filePath);
             options.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {securityScheme, Array.Empty<string>()}
             });
+            
         });
 
         // File hosting

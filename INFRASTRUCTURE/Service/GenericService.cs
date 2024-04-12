@@ -19,6 +19,11 @@ public class GenericService <TModel> : IGenericService<TModel> where TModel : cl
     {
         return await _dbModel.ToListAsync();
     }
+    
+    public async Task<ICollection<TModel>> GetByChunk(int max)
+    {
+        return await _dbModel.Take(max).ToListAsync();
+    }
 
     public async Task<TModel?> GetAsync(int id)
     {

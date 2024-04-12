@@ -1,9 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace APPLICATION.Dto.Auth;
 
 public class AuthRegisterDto
 {
+    [EmailAddress]
+    [Required]
     public string Email { get; set; }
+    [Required]
+    [MinLength(7)]
     public string UserName { get; set; }
+    [Required]
+    [MinLength(8)]
     public string Password { get; set; }
     public string? PhoneNumber { get; set; }
     /*****************************************/

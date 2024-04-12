@@ -44,13 +44,12 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = builder.Configuration["File:Request"]
 });
 
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.DocumentTitle = app.Configuration["App"];
+    c.SwaggerEndpoint("v1/swagger.json", app.Configuration["App"]);
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

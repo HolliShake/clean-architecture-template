@@ -1,5 +1,6 @@
 using APPLICATION.IService;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API;
@@ -19,6 +20,14 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     {
         var result = /**/
             await _repo.GetAllAsync();
+
+        return Ok(_mapper.Map<ICollection<GetDto>>(result));
+    }
+    
+    protected async Task<ActionResult> GenericGetByChunk(int sizeMax)
+    {
+        var result = /**/
+            await _repo.GetByChunk(sizeMax);
 
         return Ok(_mapper.Map<ICollection<GetDto>>(result));
     }
@@ -94,43 +103,96 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     }
     
     /****************** ACTION ROUTES ******************/
-    
+    /// <summary>
+    /// Get all data.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>Array[TItem]</returns>
+    [Authorize]
     [HttpGet("/[controller]/all")]
     public async Task<ActionResult> GetAllAction()
     {
         return await GenericGetAll();
     }
     
+    /// <summary>
+    /// Get 1st to n (where n := size(parameter)) data.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>Array[Item]</returns>
+    [Authorize]
+    [HttpGet("/[controller]/chunk/{size:int}")]
+    public async Task<ActionResult> GetByChunk(int size)
+    {
+        return await GenericGetByChunk(size);
+    }
+    
+    /// <summary>
+    /// Get specific data by id.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>Array[T]></returns>
+    [Authorize]
     [HttpGet("/[controller]/{id:int}")]
     public async Task<ActionResult> GetAction(int id)
     {
         return await GenericGet(id);
     }
-
+    
+    /// <summary>
+    /// Creates new item.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>TItem</returns>
+    [Authorize]
     [HttpPost($"/[controller]/create")]
     public async Task<ActionResult> CreateAction(ItemDto item)
     {
         return await GenericCreate(item);
     }
     
+    /// <summary>
+    /// Creates multiple item.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>Array[TItem]</returns>
+    [Authorize]
     [HttpPost("/[controller]/insert")]
     public async Task<ActionResult> CreateAllAction(List<ItemDto> items)
     {
         return await GenericCreateAll(items);
     }
-
+    
+    /// <summary>
+    /// Updates single property of an item.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>TItem</returns>
+    [Authorize]
     [HttpPatch("/[controller]/patch/{id:int}")]
     public async Task<ActionResult> PatchAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
     }
     
+    /// <summary>
+    /// Updates multiple property of an item.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>TItem</returns>
+    [Authorize]
     [HttpPut("/[controller]/update/{id:int}")]
     public async Task<ActionResult> UpdateAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
     }
     
+    /// <summary>
+    /// Deletes an item.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>Null</returns>
+    [Authorize]
     [HttpDelete("/[controller]/delete/{id:int}")]
     public async Task<ActionResult> UpdateUser(int id)
     {

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using APPLICATION.Dto.Auth;
 using AutoMapper;
 using CQI.APPLICATION.Jwt;
@@ -28,7 +29,11 @@ public class AuthController:ControllerBase
         _userManager = userManager;
         _signInManager = signInManager;
     }
-
+    
+    /// <summary>
+    /// Login attempt.
+    /// </summary>
+    /// <returns>AuthData</returns>
     [HttpPost("/[controller]/login")]
     public async Task<ActionResult> LoginAttempt(AuthDto credential)
     {
@@ -52,10 +57,10 @@ public class AuthController:ControllerBase
 
         Ok:;
         // If allow email verification
-        // if (!user.EmailConfirmed)
-        // {
-        //     return Unauthorized("Email is not authorized");
-        // }
+        if (!user.EmailConfirmed)
+        {
+            return Unauthorized("Email is not authorized");
+        }
 
         var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
 
@@ -68,11 +73,13 @@ public class AuthController:ControllerBase
         return Ok(userData);
     }
     
+    /// <summary>
+    /// Login attempt via google.
+    /// </summary>
+    /// <returns>AuthData</returns>
     [HttpPost("/[controller]/google-signin")]
     public async Task<ActionResult> GoogleLogin(GoogleDto google)
     {
-        Console.WriteLine(google.GToken);
-        
         var settings = new GoogleJsonWebSignature.ValidationSettings
         {
             // Change this to your google client ID
@@ -120,6 +127,11 @@ public class AuthController:ControllerBase
         }
         
         final:;
+        if (!user.EmailConfirmed)
+        {
+            return Unauthorized("Email is not authorized");
+        }
+        
         var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
         
         var userData = _mapper.Map<AuthDataDto>(user);
@@ -131,6 +143,10 @@ public class AuthController:ControllerBase
         return Ok(userData);
     }
     
+    /// <summary>
+    /// Register attempt.
+    /// </summary>
+    /// <returns>Null|Errors</returns>
     [HttpPost("/[controller]/register")]
     public async Task<ActionResult> Register(AuthRegisterDto registrationForm)
     {
@@ -144,11 +160,42 @@ public class AuthController:ControllerBase
         return BadRequest(result.Errors);
     }
     
+    /// <summary>
+    /// ReAuthenticate every page refresh (must use authentication context in UI).
+    /// </summary>
+    /// <returns>AuthData|Errors</returns>
     [Authorize]
     [HttpGet("/[controller]/authenticate")]
     public async Task<ActionResult> Authenticate()
     {
         var accessToken = Request.Headers[HeaderNames.Authorization];
-        return Ok(accessToken);
+        var principal = _jwtAuthManager.DecodeJwtToken(accessToken);
+        var userId = principal.Item1.FindFirst(type => type.Type == ClaimTypes.NameIdentifier)?.Value;
+        
+        if (userId == null)
+        {
+            goto bad;
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user != null)
+        {
+            goto ok;
+        }
+        
+        bad:;
+        return NotFound();
+        
+        ok:;
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
+        
+        var userData = _mapper.Map<AuthDataDto>(user);
+        userData.AccessToken = /**/
+            token.AccessToken;
+        userData.RefreshToken = /**/
+            token.RefreshToken.TokenString;
+        
+        return Ok(userData);
     }
 }
