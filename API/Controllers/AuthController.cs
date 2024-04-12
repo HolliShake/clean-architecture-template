@@ -34,7 +34,7 @@ public class AuthController:ControllerBase
     /// Login attempt.
     /// </summary>
     /// <returns>AuthData</returns>
-    [HttpPost("/[controller]/login")]
+    [HttpPost("/Api/[controller]/login")]
     public async Task<ActionResult> LoginAttempt(AuthDto credential)
     {
         var user = await _userManager.FindByEmailAsync(credential.Email);
@@ -77,7 +77,7 @@ public class AuthController:ControllerBase
     /// Login attempt via google.
     /// </summary>
     /// <returns>AuthData</returns>
-    [HttpPost("/[controller]/google-signin")]
+    [HttpPost("/Api/[controller]/google-signin")]
     public async Task<ActionResult> GoogleLogin(GoogleDto google)
     {
         var settings = new GoogleJsonWebSignature.ValidationSettings
@@ -147,7 +147,7 @@ public class AuthController:ControllerBase
     /// Register attempt.
     /// </summary>
     /// <returns>Null|Errors</returns>
-    [HttpPost("/[controller]/register")]
+    [HttpPost("/Api/[controller]/register")]
     public async Task<ActionResult> Register(AuthRegisterDto registrationForm)
     {
         var result = await _userManager.CreateAsync(_mapper.Map<User>(registrationForm), registrationForm.Password);
@@ -165,7 +165,7 @@ public class AuthController:ControllerBase
     /// </summary>
     /// <returns>AuthData|Errors</returns>
     [Authorize]
-    [HttpGet("/[controller]/authenticate")]
+    [HttpGet("/Api/[controller]/authenticate")]
     public async Task<ActionResult> Authenticate()
     {
         var accessToken = Request.Headers[HeaderNames.Authorization];

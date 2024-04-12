@@ -109,7 +109,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[TItem]</returns>
     [Authorize]
-    [HttpGet("/[controller]/all")]
+    [HttpGet("/Api/[controller]/all")]
     public async Task<ActionResult> GetAllAction()
     {
         return await GenericGetAll();
@@ -121,7 +121,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[Item]</returns>
     [Authorize]
-    [HttpGet("/[controller]/chunk/{size:int}")]
+    [HttpGet("/Api/[controller]/chunk/{size:int}")]
     public async Task<ActionResult> GetByChunk(int size)
     {
         return await GenericGetByChunk(size);
@@ -133,7 +133,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[T]></returns>
     [Authorize]
-    [HttpGet("/[controller]/{id:int}")]
+    [HttpGet("/Api/[controller]/{id:int}")]
     public async Task<ActionResult> GetAction(int id)
     {
         return await GenericGet(id);
@@ -145,7 +145,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Authorize]
-    [HttpPost($"/[controller]/create")]
+    [HttpPost($"/Api/[controller]/create")]
     public async Task<ActionResult> CreateAction(ItemDto item)
     {
         return await GenericCreate(item);
@@ -157,7 +157,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[TItem]</returns>
     [Authorize]
-    [HttpPost("/[controller]/insert")]
+    [HttpPost("/Api/[controller]/insert")]
     public async Task<ActionResult> CreateAllAction(List<ItemDto> items)
     {
         return await GenericCreateAll(items);
@@ -169,7 +169,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Authorize]
-    [HttpPatch("/[controller]/patch/{id:int}")]
+    [HttpPatch("/Api/[controller]/patch/{id:int}")]
     public async Task<ActionResult> PatchAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
@@ -181,7 +181,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Authorize]
-    [HttpPut("/[controller]/update/{id:int}")]
+    [HttpPut("/Api/[controller]/update/{id:int}")]
     public async Task<ActionResult> UpdateAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
@@ -193,7 +193,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Null</returns>
     [Authorize]
-    [HttpDelete("/[controller]/delete/{id:int}")]
+    [HttpDelete("/Api/[controller]/delete/{id:int}")]
     public async Task<ActionResult> UpdateUser(int id)
     {
         return await GenericDelete(id);
