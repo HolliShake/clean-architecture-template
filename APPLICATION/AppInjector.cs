@@ -1,5 +1,5 @@
 ﻿using APPLICATION.Mapper;
-using CQI.APPLICATION.Jwt;
+using APPLICATION.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
