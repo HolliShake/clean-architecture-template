@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CQI.APPLICATION.Jwt;
+namespace APPLICATION.Jwt;
 
 public class JwtAuthResult
 {

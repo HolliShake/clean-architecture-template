@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CQI.APPLICATION.Jwt;
+namespace APPLICATION.Jwt;
 
 public class JwtTokenConfig
 {

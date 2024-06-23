@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 // LINK: https://github.com/Cleford7/Satisfied/blob/master/Satisfied/Common/Infrastructure/JwtAuthManager.cs
 // Slightly Modified
 
-namespace CQI.APPLICATION.Jwt;
+namespace APPLICATION.Jwt;
 
 public class JwtAuthManager : IJwtAuthManager
 {

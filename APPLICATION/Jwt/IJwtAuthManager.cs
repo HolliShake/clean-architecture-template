@@ -2,7 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace CQI.APPLICATION.Jwt;
+namespace APPLICATION.Jwt;
 
 public interface IJwtAuthManager
 {

@@ -57,7 +57,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpPost($"/Api/[controller]/create")]
+    [HttpPost("/Api/[controller]/create")]
     public async Task<ActionResult> CreateAction(ItemDto item)
     {
         return await GenericCreate(item);
@@ -106,7 +106,7 @@ public class
     /// <returns>Null</returns>
     [Casl("Auth:read", "Admin:read" )]
     [HttpDelete("/Api/[controller]/delete/{id:int}")]
-    public async Task<ActionResult> UpdateUser(int id)
+    public async Task<ActionResult> DeleteAction(int id)
     {
         return await GenericDelete(id);
     }

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace CQI.APPLICATION.Jwt;
+namespace APPLICATION.Jwt;
 
 public abstract class JwtGenerator
 {

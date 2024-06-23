@@ -1,7 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
-using CQI.APPLICATION.Jwt;
+using APPLICATION.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

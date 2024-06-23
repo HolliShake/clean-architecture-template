@@ -1,12 +1,14 @@
-##
-##
-##
-##
+## Author: Philipp Andrew R. Redondo
+## Date: 2021-07-01 22:00:00
+## Description: A simple script to generate service, dto, and mapper classes for a given model.
+## Modify to suit your needs.
+
 
 import sys
 import json
-from os.path import exists, dirname, abspath, join
+from argparse import ArgumentParser
 from os import mkdir, listdir
+from os.path import exists, dirname, abspath, join, isdir, isfile, basename
 
 def get_path_separator():
     if  sys.platform.startswith("win32") or sys.platform.startswith("win64"):
@@ -35,10 +37,12 @@ KEY_SERVICE_IPATH = "IPATH"
 KEY_SERVICE_PATH = "PATH"
 KEY_SERVICE_IGENERIC_NAME = "IGENERIC_NAME"
 KEY_SERVICE_GENERIC_NAME = "GENERIC_NAME"
+KEY_SERVICE_SERVICE_VARIABLE_NAME = "SERVICE_VARIABLE"
 KEY_SERVICE_LIST_PATH = "LIST_PATH"
 # 
 KEY_MAPPER = "MAPPER"
 KEY_MAPPER_PATH = "PATH"
+KEY_MAPPER_SERVICE_VARIABLE_NAME = "SERVICE_VARIABLE"
 KEY_MAPPER_LIST_PATH = "LIST_PATH"
 # 
 KEY_DATA = "DATA"
@@ -68,10 +72,12 @@ CONFIG = ({
         KEY_SERVICE_PATH: "INFRASTRUCTURE_PATH/Service",
         KEY_SERVICE_IGENERIC_NAME: "IGenericService",
         KEY_SERVICE_GENERIC_NAME: "GenericService",
+        KEY_SERVICE_SERVICE_VARIABLE_NAME: "services",
         KEY_SERVICE_LIST_PATH: "INFRASTRUCTURE_PATH/InfraInjector.cs"
     },
     KEY_MAPPER: {
         KEY_MAPPER_PATH: "APPLICATION_PATH/Mapper",
+        KEY_MAPPER_SERVICE_VARIABLE_NAME: "services",
         KEY_MAPPER_LIST_PATH: "APPLICATION_PATH/AppInjector.cs"
     },
     KEY_DATA: {
@@ -159,9 +165,13 @@ assert_type_namespace('DTO.LIST_PATH', str)
 assert_type_namespace(KEY_SERVICE, dict)
 assert_type_namespace('SERVICE.IPATH', str)
 assert_type_namespace('SERVICE.PATH', str)
+assert_type_namespace('SERVICE.IGENERIC_NAME', str)
+assert_type_namespace('SERVICE.GENERIC_NAME', str)
+assert_type_namespace('SERVICE.SERVICE_VARIABLE', str)
 assert_type_namespace('SERVICE.LIST_PATH', str)
 assert_type_namespace(KEY_MAPPER, dict)
 assert_type_namespace('MAPPER.PATH', str)
+assert_type_namespace('MAPPER.SERVICE_VARIABLE', str)
 assert_type_namespace('MAPPER.LIST_PATH', str)
 assert_type_namespace(KEY_DATA, dict)
 assert_type_namespace('DATA.PATH', str)
@@ -208,7 +218,7 @@ VALID_SEARCH_PATHS = [
 
 print("make::info: checking paths...")
 for path in VALID_SEARCH_PATHS:
-    if not exists(path):
+    if  not exists(path):
         print("make::error: path not found: {}".format(path))
         exit(1)
 print("make::info: paths are valid.")
@@ -233,24 +243,135 @@ MAKE INFO:
     +---------------------------------+
       
     [1]. MAPPER  LIST PATH: {}
+        Description: This file is used to inject all mappers into the application.
+            example:
+                services.AddAutoMapper(
+                    typeof(UserMapper)
+                    // typeof(/*MapperProfile*/)
+                );
     [2]. SERVICE LIST PATH: {}
+        Description: This file is used to inject all services into the application.
+            example:
+                services.AddScoped<IUserService, UserService>();
+                // services.AddScoped</*IService*/, /*Service*/>();
 """.format(
-    PATH_CONFIG, 
-    PATH_API, 
-    PATH_API_CONTROLLER, 
-    PATH_APPLICATION, 
-    PATH_APPLICATION_DTO, 
-    PATH_APPLICATION_ISERVICE, 
+    PATH_CONFIG,
+    PATH_API,
+    PATH_API_CONTROLLER,
+    PATH_APPLICATION,
+    PATH_APPLICATION_DTO,
+    PATH_APPLICATION_ISERVICE,
     PATH_APPLICATION_MAPPER,
-    PATH_DOMAIN, 
-    PATH_DOMAIN_MODEL, 
-    PATH_INFRASTRUCTURE, 
+    PATH_DOMAIN,
+    PATH_DOMAIN_MODEL,
+    PATH_INFRASTRUCTURE,
     PATH_INFRASTRUCTURE_DATA,
     PATH_INFRASTRUCTURE_SERVICE,
     # OTHER
     PATH_MAPPER_LIST_PATH,
     PATH_SERVICE_LIST_PATH
 ))
+
+CONTROLLER_TEMPLATE = """
+using {dto-namespace}.{controller-name};
+using {iservice-namespace};
+using {model-namespace};
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+
+namespace {controller-namespace};
+
+[ApiController]
+[Route("[controller]")]
+public class {controller-name}Controller : {generic-name}<{controller-name}, I{controller-name}Service, {controller-name}Dto, Get{controller-name}Dto>
+{
+    public {controller-name}Controller(IMapper mapper, I{controller-name}Service repo):base(mapper, repo)
+    {
+    }
+
+    /****************** ACTION ROUTES ******************/
+    /// <summary>
+    /// Get all data.
+    /// </summary>
+    /// <returns>Array[{controller-name}]</returns>
+    [HttpGet("/Api/[controller]/all")]
+    public async Task<ActionResult> GetAllAction()
+    {
+        return await GenericGetAll();
+    }
+    
+    /// <summary>
+    /// Get 1st to n (where n := size(parameter)) data.
+    /// </summary>
+    /// <returns>Array[{controller-name}]</returns>
+    [HttpGet("/Api/[controller]/chunk/{size:int}")]
+    public async Task<ActionResult> GetByChunk(int size)
+    {
+        return await GenericGetByChunk(size);
+    }
+    
+    /// <summary>
+    /// Get specific data ({controller-name}) by id.
+    /// </summary>
+    /// <returns>Array[{controller-name}]></returns>
+    [HttpGet("/Api/[controller]/{id:int}")]
+    public async Task<ActionResult> GetAction(int id)
+    {
+        return await GenericGet(id);
+    }
+    
+    /// <summary>
+    /// Creates new {controller-name} entry.
+    /// </summary>
+    /// <returns>{controller-name}</returns>
+    [HttpPost("/Api/[controller]/create")]
+    public async Task<ActionResult> CreateAction({controller-name}Dto item)
+    {
+        return await GenericCreate(item);
+    }
+    
+    /// <summary>
+    /// Creates multiple instance of {controller-name}.
+    /// </summary>
+    /// <returns>Array[{controller-name}]</returns>
+    [HttpPost("/Api/[controller]/insert")]
+    public async Task<ActionResult> CreateAllAction(List<{controller-name}Dto> items)
+    {
+        return await GenericCreateAll(items);
+    }
+    
+    /// <summary>
+    /// Updates single property of {controller-name}.
+    /// </summary>
+    /// <remarks>(From GenericController)</remarks>
+    /// <returns>{controller-name}</returns>
+    [HttpPatch("/Api/[controller]/patch/{id:int}")]
+    public async Task<ActionResult> PatchAction(int id, {controller-name}Dto item)
+    {
+        return await GenericUpdate(id, item);
+    }
+    
+    /// <summary>
+    /// Updates multiple property of {controller-name}.
+    /// </summary>
+    /// <returns>{controller-name}</returns>
+    [HttpPut("/Api/[controller]/update/{id:int}")]
+    public async Task<ActionResult> UpdateAction(int id, {controller-name}Dto item)
+    {
+        return await GenericUpdate(id, item);
+    }
+    
+    /// <summary>
+    /// Deletes single {controller-name} entry.
+    /// </summary>
+    /// <returns>Null</returns>
+    [HttpDelete("/Api/[controller]/delete/{id:int}")]
+    public async Task<ActionResult> DeleteAction(int id)
+    {
+        return await GenericDelete(id);
+    }
+}
+"""
 
 ISERVICE_TEMPLATE = """
 using {model-namespace};
@@ -351,10 +472,128 @@ def to_new_class(class_name, new_class_name):
 
     return "public class " + new_class_name + "\n" + class_content[index:]
 
+def get_services_list():
+    content = ""
+    try:
+        fobj = open(PATH_SERVICE_LIST_PATH, "r", encoding="utf-8")
+        content = fobj.read()
+        fobj.close()
+    except Exception as e:
+        print("get_services_list::error: failed to read services list.")
+        exit(1)
+    
+    SEARCH_KEY="#region SERVICES"
+    SEACRH_END="#endregion"
+
+    index_start = content.find(SEARCH_KEY)
+    index_ended = content.find(SEACRH_END)
+
+    if  index_start == -1 or index_ended == -1:
+        print("get_services_list::error: SERVICES region not found.")
+        exit(1)
+
+    index = 0
+    new_content = ""
+
+    tab_index = 0
+
+    while (index < len(content)):
+        if  index >= index_start and index <= index_ended:
+            copy = index
+            while (copy < index_ended):
+                new_content += content[copy]
+                copy += 1
+            
+            new_content += ("\t{new-service}\n")
+            new_content += ("\t" * tab_index)
+
+            index = index_ended
+            while (index < (index_ended + len(SEACRH_END))):
+                new_content += content[index]
+                index += 1
+        else:
+            if  content[index] == "{":
+                tab_index += 1
+
+            new_content += content[index]
+            index += 1
+
+    return new_content
+
+def get_automapper_list():
+    content = ""
+    try:
+        fobj = open(PATH_MAPPER_LIST_PATH, "r", encoding="utf-8")
+        content = fobj.read()
+        fobj.close()
+    except Exception as e:
+        print("get_services_list::error: failed to read automapper list.")
+        exit(1)
+    
+    SEARCH_KEY="#region AUTOMAPPER"
+    SEACRH_END="#endregion"
+
+    index_start = content.find(SEARCH_KEY)
+    index_ended = content.find(SEACRH_END)
+
+    if  index_start == -1 or index_ended == -1:
+        print("get_services_list::error: AUTOMAPPER region not found.")
+        exit(1)
+
+    index = 0
+    new_content = ""
+
+    tab_index = 0
+
+    while (index < len(content)):
+        if  index >= index_start and index <= index_ended:
+            copy = index
+            while (copy < index_ended):
+                new_content += content[copy]
+                copy += 1
+            
+            new_content += ("\t{new-mapper}\n")
+            new_content += ("\t" * tab_index)
+
+            index = index_ended
+            while (index < (index_ended + len(SEACRH_END))):
+                new_content += content[index]
+                index += 1
+        else:
+            if  content[index] == "{":
+                tab_index += 1
+
+            new_content += content[index]
+            index += 1
+
+    return new_content
+
 ###############################################
 def get_name_space_from_root(path:str):
     return path.replace(__install_path__, "").replace(get_path_separator(), ".")[1:]
 ###############################################
+
+def make_controller(_controllerName):
+    controllerName = _controllerName.capitalize()
+
+    try:
+
+        if  not exists(join(PATH_API_CONTROLLER, f"{controllerName}Controller.cs")):
+            with open(join(PATH_API_CONTROLLER, f"{controllerName}Controller.cs"), "w") as f:
+                f.write(CONTROLLER_TEMPLATE
+                    .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
+                    .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
+                    .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))
+                    .replace("{controller-namespace}", get_name_space_from_root(PATH_API_CONTROLLER))
+                    .replace("{controller-name}", controllerName)
+                    .replace("{generic-name}", get_value_from_namespace('CONTROLLERS.GENERIC_NAME')))
+                f.close()
+        else:
+            print("make_controller::warning: controller already exists (skipped).")
+
+    except Exception as e:
+        print("make_controller::error: failed to create controller.")
+        exit(1)
 
 def get_iservice_path(_serviceName):
     serviceName = _serviceName.capitalize()
@@ -366,6 +605,9 @@ def get_service_path(_serviceName):
 
 def make_service(_serviceName):
     serviceName = _serviceName.capitalize()
+
+    iservice_exists = False
+
     try:
         if  not (get_value_from_namespace('SERVICE.IGENERIC_NAME') + '.cs') in listdir(PATH_APPLICATION_ISERVICE):
             print("make_service:IService::error: {}.cs not found at {}.".format(get_value_from_namespace('SERVICE.IGENERIC_NAME'), PATH_APPLICATION_ISERVICE))
@@ -374,14 +616,19 @@ def make_service(_serviceName):
         if  not exists(get_iservice_path(_serviceName)):
             with open(get_iservice_path(_serviceName), "w") as f:
                 f.write(ISERVICE_TEMPLATE
+                    .replace("{igeneric-name}", get_value_from_namespace('SERVICE.IGENERIC_NAME'))
+                    .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
                     .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))
                     .replace("{service-name}", serviceName))
                 f.close()
         else:
-            print("make_service:IService::warning: service interface already exists (not created).")
+            iservice_exists = True
+            print("make_service:IService::warning: service interface already exists (skipped).")
     except Exception as e:
         print("make_service:IService::error: failed to create service interface {}.".format(get_iservice_path(_serviceName)))
         exit(1)
+
+    service_exists = False
 
     try:
         if  not (get_value_from_namespace('SERVICE.GENERIC_NAME') + '.cs') in listdir(PATH_INFRASTRUCTURE_SERVICE):
@@ -391,6 +638,7 @@ def make_service(_serviceName):
         if  not exists(get_service_path(_serviceName)):
             with open(get_service_path(_serviceName), "w") as f:
                 f.write(SERVICE_TEMPLATE
+                    .replace("{generic-name}", get_value_from_namespace('SERVICE.GENERIC_NAME'))
                     .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
                     .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))
                     .replace("{data-namespace}", get_name_space_from_root(PATH_INFRASTRUCTURE_DATA))
@@ -398,9 +646,38 @@ def make_service(_serviceName):
                     .replace("{service-name}", serviceName))
                 f.close()
         else:
-            print("make_service:Service::warning: service implementation already exists (not created).")
+            service_exists = True
+            print("make_service:Service::warning: service implementation already exists (skipped).")
     except Exception as e:
         print("make_service:Service::error: failed to create service implementation {}.".format(get_service_path(_serviceName)))
+        exit(1)
+
+    if  service_exists and iservice_exists:
+        print("make_service::info: service already exists (services list not updated, skipped).")
+        return
+
+    BAK = PATH_SERVICE_LIST_PATH + ".bak"
+    try:
+        fobj0 = open(PATH_SERVICE_LIST_PATH, "r", encoding="utf-8")
+        fobj1 = open(BAK, "w", encoding="utf-8")
+        content = fobj0.read()
+        fobj1.write(content)
+        fobj0.close()
+        fobj1.close()
+    except Exception as e:
+        print("make_service::error: failed to backup service list.")
+        exit(1)
+
+    # Save
+    LINE = get_value_from_namespace('SERVICE.SERVICE_VARIABLE') + ".AddScoped<I{}Service, {}Service>(); /* added by make.py */".format(serviceName, serviceName)
+    NEW_SERVICE_LIST = get_services_list().replace("{new-service}", LINE)
+
+    try:
+        fobj = open(PATH_SERVICE_LIST_PATH, "w", encoding="utf-8")
+        fobj.write(NEW_SERVICE_LIST)
+        fobj.close()
+    except Exception as e:
+        print("make_service::error: failed to write service list.")
         exit(1)
 
 def get_dto_path(_dtoName):
@@ -431,13 +708,15 @@ def make_dto(_dtoName):
                         .replace("{dto-class}", to_new_class(_dtoName, file)))
                     f.close()
             else:
-                print(f"make_dto::warning: {file}.cs already exists (not created).")
+                print(f"make_dto::warning: {file}.cs already exists (skipped).")
     except Exception as e:
         print("make_dto::error: failed to create dto.")
         exit(1)
 
 def make_mapper(_serviceName):
     serviceName = _serviceName.capitalize()
+
+    mapper_exists = False
 
     try:
         if  not exists(join(PATH_APPLICATION_MAPPER, f"{serviceName}Mapper.cs")):
@@ -449,18 +728,60 @@ def make_mapper(_serviceName):
                     .replace("{mapper-name}", serviceName))
                 f.close()
         else:
-            print("make_mapper::warning: mapper already exists (not created).")
+            mapper_exists = True
+            print(f"make_mapper::warning: mapper {serviceName}Mapper.cs already exists (skipped).")
     except Exception as e:
         print("make_mapper::error: failed to create mapper.")
         exit(1)
 
-if  __name__ == "__main__":
-    model = "Test"
-    print("make::info:[step 1 of 3]: running make service...")
+    if  mapper_exists:
+        print("make_mapper::info: mapper already exists (mapper list not updated, skipped).")
+        return
+    
+    BAK = PATH_MAPPER_LIST_PATH + ".bak"
+    try:
+        fobj0 = open(PATH_MAPPER_LIST_PATH, "r", encoding="utf-8")
+        fobj1 = open(BAK, "w", encoding="utf-8")
+        content = fobj0.read()
+        fobj1.write(content)
+        fobj0.close()
+        fobj1.close()
+    except Exception as e:
+        print("make_service::error: failed to backup mapper list.")
+        exit(1)
+
+    # Save
+    LINE = get_value_from_namespace('MAPPER.SERVICE_VARIABLE') + ".AddAutoMapper(typeof({}Mapper)); /* added by make.py */".format(serviceName)
+    NEW_MAPPER_LIST = get_automapper_list().replace("{new-mapper}", LINE)
+
+    try:
+        fobj = open(PATH_MAPPER_LIST_PATH, "w", encoding="utf-8")
+        fobj.write(NEW_MAPPER_LIST)
+        fobj.close()
+    except Exception as e:
+        print("make_service::error: failed to write mapper list.")
+        exit(1)
+
+
+argparse = ArgumentParser(description="A simple script to generate controller, service, dto, and mapper classes for a given model.")
+argparse.add_argument("-m", '--model', metavar='\b', type=str, help="Generate controller, service, dto, and mapper.")
+argparse.add_argument("-p", '--patch', action='store_true', help="Update model list inside config file.")
+
+args = argparse.parse_args()
+
+if  args.model:
+    model = args.model
+    # Check if model exists
+    if  not ((str(model).capitalize() + '.cs') in listdir(PATH_DOMAIN_MODEL)):
+        print("make::error: model {} not found at {}.".format(str(model).capitalize() + '.cs', PATH_DOMAIN_MODEL))
+        exit(1)
+    print("make::info:[step 1 of 4]: running make service...")
+    make_controller(model)
+    print("make::info:[step 2 of 4]: running make service...")
     make_service(model)
-    print("make::info:[step 2 of 3]: running make dto...")
+    print("make::info:[step 3 of 4]: running make dto...")
     make_dto(model)
-    print("make::info:[step 3 of 3]: running make mapper...")
+    print("make::info:[step 4 of 4]: running make mapper...")
     make_mapper(model)
     print("make::info: done.")
     if not model in CONFIG["MODEL"]["LIST"]: CONFIG["MODEL"]["LIST"].append(model)
@@ -469,3 +790,15 @@ if  __name__ == "__main__":
     except Exception as e:
         print("make::error: failed to write config file.")
         exit(1)
+
+elif args.patch:
+    models = list(map(lambda cs_file: basename(str(cs_file)).replace('.cs', ''), filter(lambda f: isfile(join(PATH_DOMAIN_MODEL, str(f))) and str(f).endswith('.cs'), listdir(PATH_DOMAIN_MODEL))))
+    CONFIG["MODEL"]["LIST"] = models
+    try:
+        json.dump(CONFIG, open(PATH_CONFIG, "w"), indent=4)
+        print("make::info: done.")
+    except Exception as e:
+        print("make::error: failed to write config file.")
+        exit(1)
+else:
+    argparse.print_help()

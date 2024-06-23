@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using APPLICATION.Dto.Auth;
 using AutoMapper;
-using CQI.APPLICATION.Jwt;
+using APPLICATION.Jwt;
 using DOMAIN.Model;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
