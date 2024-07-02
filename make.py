@@ -10,6 +10,9 @@ from argparse import ArgumentParser
 from os import mkdir, listdir
 from os.path import exists, dirname, abspath, join, isdir, isfile, basename
 
+def capitalize(s:str):
+    return s[0].upper() + s[1:]
+
 def get_path_separator():
     if  sys.platform.startswith("win32") or sys.platform.startswith("win64"):
         return "\\"
@@ -420,7 +423,7 @@ public class {mapper-name}Mapper : Profile
 """
 
 def get_model_class(_modelName):
-    modelName = _modelName.capitalize()
+    modelName = capitalize(_modelName)
     if  not (modelName + '.cs') in listdir(PATH_DOMAIN_MODEL):
         print("get_model_class::error: model class {}.cs not found.".format(modelName))
         exit(1)
@@ -574,7 +577,7 @@ def get_name_space_from_root(path:str):
 ###############################################
 
 def make_controller(_controllerName):
-    controllerName = _controllerName.capitalize()
+    controllerName = capitalize(_controllerName)
 
     try:
 
@@ -596,15 +599,15 @@ def make_controller(_controllerName):
         exit(1)
 
 def get_iservice_path(_serviceName):
-    serviceName = _serviceName.capitalize()
+    serviceName = capitalize(_serviceName)
     return join(PATH_APPLICATION_ISERVICE, f"I{serviceName}Service.cs")
 
 def get_service_path(_serviceName):
-    serviceName = _serviceName.capitalize()
+    serviceName = capitalize(_serviceName)
     return join(PATH_INFRASTRUCTURE_SERVICE, f"{serviceName}Service.cs")
 
 def make_service(_serviceName):
-    serviceName = _serviceName.capitalize()
+    serviceName = capitalize(_serviceName)
 
     iservice_exists = False
 
@@ -681,10 +684,10 @@ def make_service(_serviceName):
         exit(1)
 
 def get_dto_path(_dtoName):
-    return join(PATH_APPLICATION_DTO, _dtoName.capitalize())
+    return join(PATH_APPLICATION_DTO, capitalize(_dtoName))
 
 def make_dto(_dtoName):
-    dtoName = _dtoName.capitalize()
+    dtoName = capitalize(_dtoName)
     GETTER = f"Get{dtoName}Dto"
     SETTER = f"{dtoName}Dto"
     REQUIRED_FILES = [GETTER, SETTER]
@@ -714,7 +717,7 @@ def make_dto(_dtoName):
         exit(1)
 
 def make_mapper(_serviceName):
-    serviceName = _serviceName.capitalize()
+    serviceName = capitalize(_serviceName)
 
     mapper_exists = False
 
@@ -772,8 +775,8 @@ args = argparse.parse_args()
 if  args.model:
     model = args.model
     # Check if model exists
-    if  not ((str(model).capitalize() + '.cs') in listdir(PATH_DOMAIN_MODEL)):
-        print("make::error: model {} not found at {}.".format(str(model).capitalize() + '.cs', PATH_DOMAIN_MODEL))
+    if  not ((capitalize(str(model)) + '.cs') in listdir(PATH_DOMAIN_MODEL)):
+        print("make::error: model {} not found at {}.".format(capitalize(str(model)) + '.cs', PATH_DOMAIN_MODEL))
         exit(1)
     print("make::info:[step 1 of 4]: running make service...")
     make_controller(model)
