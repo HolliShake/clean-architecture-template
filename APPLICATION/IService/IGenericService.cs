@@ -1,13 +1,16 @@
-﻿namespace APPLICATION.IService;
+﻿using APPLICATION.Dto.Response;
 
-public interface IGenericService<TModel>
+namespace APPLICATION.IService;
+
+public interface IGenericService<TModel, TSetter,TGetter>
 {
-    public Task<ICollection<TModel>> GetAllAsync();
-    public Task<ICollection<TModel>> GetByChunk(int max);
-    public Task<TModel?> GetAsync(int id);
-    public Task<bool> CreateAsync(TModel newItem);
-    public Task<bool> CreateAllAsync(IList<TModel> newItems);
-    public Task<bool> UpdateSync(TModel updatedItem);
-    public Task<bool> DeleteSync(TModel oldItem);
+    public Task<List<TGetter>> GetAllAsync();
+    public Task<PaginationResponseDto<TGetter>> Paginate(int page, int rows, Func<IQueryable<TModel>, IQueryable<TModel>>? query = null);
+    public Task<List<TGetter>> GetByChunk(int page, int rows);
+    public Task<TGetter?> GetAsync(int id);
+    public Task<TGetter?> CreateAsync(TSetter newItem);
+    public Task<List<TGetter>> CreateAllAsync(IList<TSetter> newItems);
+    public Task<TGetter?> UpdateSync(int id, TSetter updatedItem);
+    public Task<bool> DeleteSync(int id);
 }
 

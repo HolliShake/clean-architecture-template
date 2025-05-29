@@ -7,9 +7,9 @@ namespace API;
 
 public class
     GenericActionController<TModel, IServiceProvider, ItemDto, GetDto> : GenericController<TModel, IServiceProvider,
-    ItemDto, GetDto> where IServiceProvider : IGenericService<TModel>
+    ItemDto, GetDto> where IServiceProvider : IGenericService<TModel, ItemDto, GetDto>
 {
-    public GenericActionController(IMapper mapper, IServiceProvider repo):base(mapper, repo)
+    public GenericActionController(IServiceProvider repo):base(repo)
     {
        
     }
@@ -21,22 +21,35 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[TItem]</returns>
     [Casl("Admin:read" )]
-    [HttpGet("/Api/[controller]/all")]
+    [HttpGet("all")]
     public async Task<ActionResult> GetAllAction()
     {
         return await GenericGetAll();
     }
-    
+
     /// <summary>
-    /// Get 1st to n (where n := size(parameter)) data.
+    /// Get paginated data.
     /// </summary>
     /// <remarks>(From GenericController)</remarks>
-    /// <returns>Array[Item]</returns>
-    [Casl("Auth:read", "Admin:read" )]
-    [HttpGet("/Api/[controller]/chunk/{size:int}")]
-    public async Task<ActionResult> GetByChunk(int size)
+    /// <returns>Array[TItem]</returns>
+    [Casl("Admin:read" )]
+    [HttpGet("paginate/{page:int}/{rows:int}")]
+    public async Task<ActionResult> GetPaginatedAction(int page, int rows)
     {
-        return await GenericGetByChunk(size);
+        return await GenericGetPaginated(page, rows);
+    }
+    
+    /// <summary>
+    /// Get a chunk of data.
+    /// </summary>
+    /// <param name="page">The page number.</param>
+    /// <param name="rows">The number of rows per page.</param>
+    /// <returns>A chunk of data.</returns>
+    [Casl("Auth:read", "Admin:read" )]
+    [HttpGet("chunk/{page:int}/{rows:int}")]
+    public async Task<ActionResult> GetByChunk(int page, int rows)
+    {
+        return await GenericGetByChunk(page, rows);
     }
     
     /// <summary>
@@ -45,7 +58,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[T]></returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpGet("/Api/[controller]/{id:int}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult> GetAction(int id)
     {
         return await GenericGet(id);
@@ -57,7 +70,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpPost("/Api/[controller]/create")]
+    [HttpPost("create")]
     public async Task<ActionResult> CreateAction(ItemDto item)
     {
         return await GenericCreate(item);
@@ -69,7 +82,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[TItem]</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpPost("/Api/[controller]/insert")]
+    [HttpPost("insert")]
     public async Task<ActionResult> CreateAllAction(List<ItemDto> items)
     {
         return await GenericCreateAll(items);
@@ -81,7 +94,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpPatch("/Api/[controller]/patch/{id:int}")]
+    [HttpPatch("patch/{id:int}")]
     public async Task<ActionResult> PatchAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
@@ -93,7 +106,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpPut("/Api/[controller]/update/{id:int}")]
+    [HttpPut("update/{id:int}")]
     public async Task<ActionResult> UpdateAction(int id, ItemDto item)
     {
         return await GenericUpdate(id, item);
@@ -105,7 +118,7 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Null</returns>
     [Casl("Auth:read", "Admin:read" )]
-    [HttpDelete("/Api/[controller]/delete/{id:int}")]
+    [HttpDelete("delete/{id:int}")]
     public async Task<ActionResult> DeleteAction(int id)
     {
         return await GenericDelete(id);

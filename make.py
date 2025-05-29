@@ -276,11 +276,10 @@ MAKE INFO:
 ))
 
 CONTROLLER_TEMPLATE = """
+using Microsoft.AspNetCore.Mvc;
 using {dto-namespace}.{controller-name};
 using {iservice-namespace};
 using {model-namespace};
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 
 namespace {controller-namespace};
 
@@ -288,7 +287,7 @@ namespace {controller-namespace};
 [Route("[controller]")]
 public class {controller-name}Controller : {generic-name}<{controller-name}, I{controller-name}Service, {controller-name}Dto, Get{controller-name}Dto>
 {
-    public {controller-name}Controller(IMapper mapper, I{controller-name}Service repo):base(mapper, repo)
+    public {controller-name}Controller(I{controller-name}Service repo):base(repo)
     {
     }
 
@@ -297,27 +296,37 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// Get all data.
     /// </summary>
     /// <returns>Array[{controller-name}]</returns>
-    [HttpGet("/Api/[controller]/all")]
+    [HttpGet("all")]
     public async Task<ActionResult> GetAllAction()
     {
         return await GenericGetAll();
     }
-    
+
+    /// <summary>
+    /// Get paginated data.
+    /// </summary>
+    /// <returns>A paginated data.</returns>
+    [HttpGet("paginate/{page:int}/{rows:int}")]
+    public async Task<ActionResult> GetPaginatedAction(int page, int rows)
+    {
+        return await GenericGetPaginated(page, rows);
+    }
+
     /// <summary>
     /// Get 1st to n (where n := size(parameter)) data.
     /// </summary>
     /// <returns>Array[{controller-name}]</returns>
-    [HttpGet("/Api/[controller]/chunk/{size:int}")]
-    public async Task<ActionResult> GetByChunk(int size)
+    [HttpGet("chunk/{page:int}/{rows:int}")]
+    public async Task<ActionResult> GetByChunk(int page, int rows)
     {
-        return await GenericGetByChunk(size);
+        return await GenericGetByChunk(page, rows);
     }
     
     /// <summary>
     /// Get specific data ({controller-name}) by id.
     /// </summary>
     /// <returns>Array[{controller-name}]></returns>
-    [HttpGet("/Api/[controller]/{id:int}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult> GetAction(int id)
     {
         return await GenericGet(id);
@@ -327,7 +336,7 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// Creates new {controller-name} entry.
     /// </summary>
     /// <returns>{controller-name}</returns>
-    [HttpPost("/Api/[controller]/create")]
+    [HttpPost("create")]
     public async Task<ActionResult> CreateAction({controller-name}Dto item)
     {
         return await GenericCreate(item);
@@ -337,7 +346,7 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// Creates multiple instance of {controller-name}.
     /// </summary>
     /// <returns>Array[{controller-name}]</returns>
-    [HttpPost("/Api/[controller]/insert")]
+    [HttpPost("insert")]
     public async Task<ActionResult> CreateAllAction(List<{controller-name}Dto> items)
     {
         return await GenericCreateAll(items);
@@ -348,7 +357,7 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// </summary>
     /// <remarks>(From GenericController)</remarks>
     /// <returns>{controller-name}</returns>
-    [HttpPatch("/Api/[controller]/patch/{id:int}")]
+    [HttpPatch("patch/{id:int}")]
     public async Task<ActionResult> PatchAction(int id, {controller-name}Dto item)
     {
         return await GenericUpdate(id, item);
@@ -358,7 +367,7 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// Updates multiple property of {controller-name}.
     /// </summary>
     /// <returns>{controller-name}</returns>
-    [HttpPut("/Api/[controller]/update/{id:int}")]
+    [HttpPut("update/{id:int}")]
     public async Task<ActionResult> UpdateAction(int id, {controller-name}Dto item)
     {
         return await GenericUpdate(id, item);
@@ -368,7 +377,7 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// Deletes single {controller-name} entry.
     /// </summary>
     /// <returns>Null</returns>
-    [HttpDelete("/Api/[controller]/delete/{id:int}")]
+    [HttpDelete("delete/{id:int}")]
     public async Task<ActionResult> DeleteAction(int id)
     {
         return await GenericDelete(id);
@@ -377,23 +386,29 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
 """
 
 ISERVICE_TEMPLATE = """
+using {dto-namespace}.{service-name};
+using {dto-namespace}.Response;
 using {model-namespace};
 
 namespace {iservice-namespace};
-public interface I{service-name}Service:{igeneric-name}<{service-name}>
+
+public interface I{service-name}Service:{igeneric-name}<{service-name}, {service-name}Dto, Get{service-name}Dto>
 {
 }
 """
 
 SERVICE_TEMPLATE = """
+using AutoMapper;
+using {data-namespace};
+using {dto-namespace}.{service-name};
 using {iservice-namespace};
 using {model-namespace};
-using {data-namespace};
 
 namespace {service-namespace};
-public class {service-name}Service:{generic-name}<{service-name}>, I{service-name}Service
+
+public class {service-name}Service:{generic-name}<{service-name}, {service-name}Dto, Get{service-name}Dto>, I{service-name}Service
 {
-    public {service-name}Service(AppDbContext context):base(context)
+    public {service-name}Service(AppDbContext context, IMapper mapper):base(context, mapper)
     {
     }
 }
@@ -403,15 +418,17 @@ DTO_TEMPLATE = """\
 using System.ComponentModel.DataAnnotations;
 
 namespace {dto-namespace};
+
 {dto-class}
 """
 
 MAPPER_TEMPLATE="""\
-using AutoMapper;
 using {dto-namespace}.{mapper-name};
 using {model-namespace};
+using AutoMapper;
 
 namespace {mapper-namespace};
+
 public class {mapper-name}Mapper : Profile
 {
     public {mapper-name}Mapper()
@@ -619,6 +636,7 @@ def make_service(_serviceName):
         if  not exists(get_iservice_path(_serviceName)):
             with open(get_iservice_path(_serviceName), "w") as f:
                 f.write(ISERVICE_TEMPLATE
+                    .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
                     .replace("{igeneric-name}", get_value_from_namespace('SERVICE.IGENERIC_NAME'))
                     .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
                     .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))
@@ -641,6 +659,7 @@ def make_service(_serviceName):
         if  not exists(get_service_path(_serviceName)):
             with open(get_service_path(_serviceName), "w") as f:
                 f.write(SERVICE_TEMPLATE
+                    .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
                     .replace("{generic-name}", get_value_from_namespace('SERVICE.GENERIC_NAME'))
                     .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
                     .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))

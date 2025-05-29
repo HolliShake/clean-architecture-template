@@ -5,100 +5,102 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API;
 
-public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : ControllerBase where IServiceProvider : IGenericService<TModel>
+/// <summary>
+/// Generic controller for all models.
+/// </summary>
+/// <typeparam name="TModel">The model type.</typeparam>
+/// <typeparam name="IServiceProvider">The service provider type.</typeparam>
+/// <typeparam name="ItemDto">The item dto type.</typeparam>
+/// <typeparam name="GetDto">The get dto type.</typeparam>
+public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : ControllerBase where IServiceProvider : IGenericService<TModel, ItemDto, GetDto>
 {
-    protected readonly IMapper _mapper;
+  
     protected readonly IServiceProvider _repo;
 
-    public GenericController(IMapper mapper, IServiceProvider repo)
+    public GenericController(IServiceProvider repo)
     {
-        _mapper = mapper;
         _repo = repo;
     }
 
+    /// <summary>
+    /// Get all data.
+    /// </summary>
+    /// <returns>All data.</returns>
     protected async Task<ActionResult> GenericGetAll()
     {
-        var result = /**/
-            await _repo.GetAllAsync();
-
-        return Ok(_mapper.Map<ICollection<GetDto>>(result));
+        return Ok(await _repo.GetAllAsync());
     }
-    
-    protected async Task<ActionResult> GenericGetByChunk(int sizeMax)
+
+    /// <summary>
+    /// Get paginated data.
+    /// </summary>
+    /// <param name="page">The page number.</param>
+    /// <param name="rows">The number of rows per page.</param>
+    /// <returns>A paginated data.</returns>
+    protected async Task<ActionResult> GenericGetPaginated(int page, int rows)
     {
-        var result = /**/
-            await _repo.GetByChunk(sizeMax);
-
-        return Ok(_mapper.Map<ICollection<GetDto>>(result));
+        return Ok(await _repo.Paginate(page, rows));
     }
 
+    /// <summary>
+    /// Get a chunk of data.
+    /// </summary>
+    /// <param name="page">The page number.</param>
+    /// <param name="rows">The number of rows per page.</param>
+    /// <returns>A chunk of data.</returns>
+    protected async Task<ActionResult> GenericGetByChunk(int page, int rows)
+    {
+        return Ok(await _repo.GetByChunk(page, rows));
+    }
+
+    /// <summary>
+    /// Get a single data.
+    /// </summary>
+    /// <param name="id">The id of the data.</param>
+    /// <returns>A single data.</returns>
     protected async Task<ActionResult> GenericGet(int id)
     {
-        var result = /**/
-            await _repo.GetAsync(id);
-
-        return (result != null) 
-            ? Ok(_mapper.Map<GetDto>(result))
-            : NotFound();
+        return Ok(await _repo.GetAsync(id));
     }
 
-    protected async Task<ActionResult> GenericCreate<ItemDto>(ItemDto newItem)
+    /// <summary>
+    /// Create a new data.
+    /// </summary>
+    /// <param name="newItem">The new data.</param>
+    /// <returns>The created data.</returns>
+    protected async Task<ActionResult> GenericCreate(ItemDto newItem)
     {
-        var model = _mapper.Map<TModel>(newItem);
-
-        var result = /**/
-            await _repo.CreateAsync(model);
-
-        return (result)
-            ? Ok(_mapper.Map<GetDto>(model))
-            : BadRequest("Something went wrong!");
+        return Ok(await _repo.CreateAsync(newItem));
     }
 
-    protected async Task<ActionResult> GenericCreateAll<ItemDto>(List<ItemDto> newItems)
+    /// <summary>
+    /// Create multiple data.
+    /// </summary>
+    /// <param name="newItems">The new data.</param>
+    /// <returns>The created data.</returns>
+    protected async Task<ActionResult> GenericCreateAll(List<ItemDto> newItems)
     {
-        var model = _mapper.Map<IList<TModel>>(newItems);
-
-        var result = /**/
-            await _repo.CreateAllAsync(model);
-
-        return (result)
-            ? Ok(_mapper.Map<ICollection<GetDto>>(model))
-            : BadRequest("Something went wrong!");
+        return Ok(await _repo.CreateAllAsync(newItems));
     }
     
-    protected async Task<ActionResult> GenericUpdate<ItemDto>(int id, ItemDto item)
+    /// <summary>
+    /// Update a data.
+    /// </summary>
+    /// <param name="id">The id of the data.</param>
+    /// <param name="item">The updated data.</param>
+    /// <returns>The updated data.</returns>
+    protected async Task<ActionResult> GenericUpdate(int id, ItemDto item)
     {
-        var record = await _repo.GetAsync(id);
-
-        if (record == null)
-        {
-            return NotFound();
-        }
-
-        var model = _mapper.Map(item, record);
-
-        var result = /**/
-            await _repo.UpdateSync(model);
-
-        return (result)
-            ? Ok(_mapper.Map<GetDto>(model))
-            : BadRequest("Something went wrong!");
+        return Ok(await _repo.UpdateSync(id, item));
     }
 
+    /// <summary>
+    /// Delete a data.
+    /// </summary>
+    /// <param name="id">The id of the data.</param>
+    /// <returns>The deleted data.</returns>
     protected async Task<ActionResult> GenericDelete(int id)
     {
-        var record = await _repo.GetAsync(id);
-
-        if (record == null)
-        {
-            return NotFound();
-        }
-
-        var result = /**/
-            await _repo.DeleteSync(record);
-
-        return (result)
-            ? NoContent()
-            : BadRequest("Something went wrong!");
+        return Ok(await _repo.DeleteSync(id));
     }
 }

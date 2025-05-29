@@ -5,16 +5,14 @@ using APPLICATION.Jwt;
 using DOMAIN.Model;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController:ControllerBase
+public class AuthController : ControllerBase
 {
     private readonly ConfigurationManager _config;
     private readonly IMapper _mapper;
@@ -35,7 +33,7 @@ public class AuthController:ControllerBase
     /// Login attempt.
     /// </summary>
     /// <returns>AuthData</returns>
-    [HttpPost("/Api/[controller]/login")]
+    [HttpPost("login")]
     public async Task<ActionResult> LoginAttempt(AuthDto credential)
     {
         var user = await _userManager.FindByEmailAsync(credential.Email);
@@ -79,7 +77,7 @@ public class AuthController:ControllerBase
     /// Login attempt via google.
     /// </summary>
     /// <returns>AuthData</returns>
-    [HttpPost("/Api/[controller]/google-signin")]
+    [HttpPost("google-signin")]
     public async Task<ActionResult> GoogleLogin(GoogleDto google)
     {
         var settings = new GoogleJsonWebSignature.ValidationSettings
@@ -150,7 +148,7 @@ public class AuthController:ControllerBase
     /// Register attempt.
     /// </summary>
     /// <returns>Null|Errors</returns>
-    [HttpPost("/Api/[controller]/register")]
+    [HttpPost("register")]
     public async Task<ActionResult> Register(AuthRegisterDto registrationForm)
     {
         var result = await _userManager.CreateAsync(_mapper.Map<User>(registrationForm), registrationForm.Password);
@@ -163,7 +161,12 @@ public class AuthController:ControllerBase
         return BadRequest(result.Errors);
     }
 
-    [HttpPost("/Api/[controller]/generate/{secret}")]
+    /// <summary>
+    /// Generate admin user.
+    /// </summary>
+    /// <param name="secret">The secret key.</param>
+    /// <returns>The admin user.</returns>
+    [HttpPost("generate/{secret}")]
     public async Task<ActionResult> GenerateAdmin(string secret)
     {
         var old = await _userManager.FindByEmailAsync(_config["Admin:Email"]);
@@ -224,7 +227,7 @@ public class AuthController:ControllerBase
     /// ReAuthenticate every page refresh (must use authentication context in UI).
     /// </summary>
     /// <returns>AuthData|Errors</returns>
-    [HttpGet("/Api/[controller]/authenticate")]
+    [HttpGet("authenticate")]
     public async Task<ActionResult> Authenticate()
     {
         var accessToken = HttpContext.Request.Headers["Authorization"].ToString().Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
