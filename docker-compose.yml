@@ -1,0 +1,50 @@
+services:
+  # Rest API
+  rest-api:
+    build:
+      dockerfile: ./docker/rest/Dockerfile
+    container_name: ${DOCKER_API_CONTAINER_NAME}
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    networks:
+      - application
+
+  # Database
+  database:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: ${DOCKER_DATABASE_CONTAINER_NAME}
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - db-data:/var/opt/mssql
+    networks:
+      - application
+
+  # Nginx web server to proxy requests
+  webserver:
+    image: nginx:latest
+    container_name: ${DOCKER_WEBSERVER_CONTAINER_NAME}
+    ports:
+        - '80:80'
+    volumes:
+        - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+        - application
+
+networks:
+  application:
+    name: ${DOCKER_NETWORK_INTERNAL_NAME}
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local
