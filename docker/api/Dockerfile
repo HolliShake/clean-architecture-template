@@ -34,8 +34,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
 WORKDIR /app
 
 # Copy management scripts with correct path syntax for Docker
-COPY ../../api/manage.sh  .
-COPY ../../api/manage.bat .
+COPY ../../api/manage.docker.sh  .
 
 # Install Python
 RUN apt-get update && apt-get install -y python3

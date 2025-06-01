@@ -16,6 +16,8 @@ public class InfraInjector
         #region SERVICES
             services.AddScoped<IUserService, UserService>();
 			services.AddScoped<IRoleService, RoleService>(); /* added by make.py */
+			services.AddScoped<IRoleActionService, RoleActionService>(); /* added by make.py */
+			services.AddScoped<IUserXAccessService, UserXAccessService>(); /* added by make.py */
 		#endregion
 
         // Identity

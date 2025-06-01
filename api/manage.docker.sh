@@ -7,7 +7,7 @@ BUILD_CMD="dotnet build -c release"
 MIGRATION_ADD_CMD="dotnet-ef migrations add"
 MIGRATION_UPDATE_CMD="dotnet-ef database update"
 MIGRATION_REMOVE_CMD="dotnet-ef migrations remove"
-PROJECT_ARG="--project $INFRASTRUCTURE_PROJECT --startup-project $API_PROJECT"
+PROJECT_ARG="--project ./src/$INFRASTRUCTURE_PROJECT --startup-project ./src/$API_PROJECT"
 
 # ===== Build Command =====
 if [ "$1" = "--build" ]; then

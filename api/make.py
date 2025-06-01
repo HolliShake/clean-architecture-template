@@ -277,7 +277,9 @@ MAKE INFO:
 
 CONTROLLER_TEMPLATE = """
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using {dto-namespace}.{controller-name};
+using {dto-namespace}.Response;
 using {iservice-namespace};
 using {model-namespace};
 
@@ -292,11 +294,21 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     }
 
     /****************** ACTION ROUTES ******************/
+    
     /// <summary>
     /// Get all data.
     /// </summary>
-    /// <returns>Array[{controller-name}]</returns>
-    [HttpGet("all")]
+    /// <returns>A list of all {controller-name}s</returns>
+    /// <response code="200">When all {controller-name}s are successfully retrieved</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during retrieval</response>
+    [HttpGet("all", Name = "getAll{controller-name}s")]
+    [SwaggerOperation(OperationId = "getAll{controller-name}s")]
+    [ProducesResponseType<List<Get{controller-name}Dto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetAllAction()
     {
         return await GenericGetAll();
@@ -308,18 +320,38 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <param name="page">The page number.</param>
     /// <param name="rows">The number of rows per page.</param>
     /// <returns>A paginated data.</returns>
+    /// <response code="200">When the paginated {controller-name}s are successfully retrieved</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during retrieval</response>
     [HttpGet("paginate")]
+    [SwaggerOperation(OperationId = "getPaginated{controller-name}s")]
+    [ProducesResponseType<PaginationResponseDto<Get{controller-name}Dto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetPaginatedAction([FromQuery] int page=1, [FromQuery] int rows=10)
     {
         return await GenericGetPaginated(page, rows);
     }
 
     /// <summary>
-    /// Get 1st to n (where n := size(parameter)) data.
+    /// Get data in chunks based on page number and rows per page.
     /// </summary>
-    /// <returns>Array[{controller-name}]</returns>
+    /// <param name="page">The page number to retrieve</param>
+    /// <param name="rows">The number of rows per page</param>
+    /// <returns>A chunked collection of {controller-name}s</returns>
+    /// <response code="200">When the {controller-name}s are successfully retrieved</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during retrieval</response>
     [HttpGet("chunk/{page:int}/{rows:int}")]
-    public async Task<ActionResult> GetByChunk(int page, int rows)
+    [SwaggerOperation(OperationId = "get{controller-name}sByChunk")]
+    [ProducesResponseType<List<Get{controller-name}Dto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> GetByChunkAction(int page, int rows)
     {
         return await GenericGetByChunk(page, rows);
     }
@@ -327,9 +359,17 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Get specific data ({controller-name}) by id.
     /// </summary>
-    /// <returns>Array[{controller-name}]></returns>
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult> GetAction(int id)
+    /// <param name="id">The ID of the {controller-name} to retrieve</param>
+    /// <returns>The {controller-name} with the specified ID</returns>
+    /// <response code="200">When the {controller-name} is successfully retrieved</response>
+    /// <response code="404">When the {controller-name} with specified ID is not found</response>
+    /// <response code="500">When an unexpected error occurs during retrieval</response>
+    [HttpGet("{id:long}")]
+    [SwaggerOperation(OperationId = "get{controller-name}ById")]
+    [ProducesResponseType<Get{controller-name}Dto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> GetAction(long id)
     {
         return await GenericGet(id);
     }
@@ -337,8 +377,20 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Creates new {controller-name} entry.
     /// </summary>
-    /// <returns>{controller-name}</returns>
+    /// <param name="item">The {controller-name} data to create</param>
+    /// <returns>The created {controller-name}</returns>
+    /// <response code="200">When the {controller-name} is successfully created</response>
+    /// <response code="400">When the provided data is invalid</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during creation</response>
     [HttpPost("create")]
+    [SwaggerOperation(OperationId = "create{controller-name}")]
+    [ProducesResponseType<Get{controller-name}Dto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CreateAction({controller-name}Dto item)
     {
         return await GenericCreate(item);
@@ -347,8 +399,20 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Creates multiple instance of {controller-name}.
     /// </summary>
-    /// <returns>Array[{controller-name}]</returns>
+    /// <param name="items">List of {controller-name} data to create</param>
+    /// <returns>List of created {controller-name}s</returns>
+    /// <response code="200">When the {controller-name}s are successfully created</response>
+    /// <response code="400">When the provided data is invalid</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during creation</response>
     [HttpPost("insert")]
+    [SwaggerOperation(OperationId = "createAll{controller-name}s")]
+    [ProducesResponseType<List<Get{controller-name}Dto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> CreateAllAction(List<{controller-name}Dto> items)
     {
         return await GenericCreateAll(items);
@@ -357,10 +421,24 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Updates single property of {controller-name}.
     /// </summary>
-    /// <remarks>(From GenericController)</remarks>
-    /// <returns>{controller-name}</returns>
-    [HttpPatch("patch/{id:int}")]
-    public async Task<ActionResult> PatchAction(int id, {controller-name}Dto item)
+    /// <param name="id">The ID of the {controller-name} to patch</param>
+    /// <param name="item">The {controller-name} property to update</param>
+    /// <returns>The patched {controller-name}</returns>
+    /// <response code="200">When the {controller-name} property is successfully updated</response>
+    /// <response code="400">When the provided data is invalid</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="404">When the {controller-name} with specified ID is not found</response>
+    /// <response code="500">When an unexpected error occurs during update</response>
+    [HttpPatch("patch/{id:long}")]
+    [SwaggerOperation(OperationId = "patch{controller-name}")]
+    [ProducesResponseType<Get{controller-name}Dto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> PatchAction(long id, {controller-name}Dto item)
     {
         return await GenericUpdate(id, item);
     }
@@ -368,9 +446,24 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Updates multiple property of {controller-name}.
     /// </summary>
-    /// <returns>{controller-name}</returns>
-    [HttpPut("update/{id:int}")]
-    public async Task<ActionResult> UpdateAction(int id, {controller-name}Dto item)
+    /// <param name="id">The ID of the {controller-name} to update</param>
+    /// <param name="item">The {controller-name} data to update</param>
+    /// <returns>The updated {controller-name}</returns>
+    /// <response code="200">When the {controller-name} is successfully updated</response>
+    /// <response code="400">When the provided data is invalid</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="404">When the {controller-name} with specified ID is not found</response>
+    /// <response code="500">When an unexpected error occurs during update</response>
+    [HttpPut("update/{id:long}")]
+    [SwaggerOperation(OperationId = "update{controller-name}")]
+    [ProducesResponseType<Get{controller-name}Dto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> UpdateAction(long id, {controller-name}Dto item)
     {
         return await GenericUpdate(id, item);
     }
@@ -378,9 +471,21 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
     /// <summary>
     /// Deletes single {controller-name} entry.
     /// </summary>
-    /// <returns>Null</returns>
-    [HttpDelete("delete/{id:int}")]
-    public async Task<ActionResult> DeleteAction(int id)
+    /// <param name="id">The ID of the {controller-name} to delete</param>
+    /// <returns>204 No Content response on successful deletion</returns>
+    /// <response code="204">When the {controller-name} is successfully deleted</response>
+    /// <response code="401">When the user is not authenticated</response>
+    /// <response code="403">When the user is not authorized</response>
+    /// <response code="404">When the {controller-name} with specified ID is not found</response>
+    /// <response code="500">When an unexpected error occurs during deletion</response>
+    [HttpDelete("delete/{id:long}")]
+    [SwaggerOperation(OperationId = "delete{controller-name}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> DeleteAction(long id)
     {
         return await GenericDelete(id);
     }

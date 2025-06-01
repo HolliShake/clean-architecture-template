@@ -57,7 +57,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// </summary>
     /// <param name="id">The id of the data.</param>
     /// <returns>A single data.</returns>
-    protected async Task<ActionResult> GenericGet(int id)
+    protected async Task<ActionResult> GenericGet(long id)
     {
         return Ok(await _repo.GetAsync(id));
     }
@@ -88,7 +88,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <param name="id">The id of the data.</param>
     /// <param name="item">The updated data.</param>
     /// <returns>The updated data.</returns>
-    protected async Task<ActionResult> GenericUpdate(int id, ItemDto item)
+    protected async Task<ActionResult> GenericUpdate(long id, ItemDto item)
     {
         return Ok(await _repo.UpdateSync(id, item));
     }
@@ -98,7 +98,7 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// </summary>
     /// <param name="id">The id of the data.</param>
     /// <returns>The deleted data.</returns>
-    protected async Task<ActionResult> GenericDelete(int id)
+    protected async Task<ActionResult> GenericDelete(long id)
     {
         return Ok(await _repo.DeleteSync(id));
     }

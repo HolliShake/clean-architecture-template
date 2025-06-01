@@ -61,7 +61,7 @@ public class AuthController : ControllerBase
             return Unauthorized("Email is not authorized");
         }
 
-        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email);
 
         var userData = _mapper.Map<AuthDataDto>(user);
         userData.IsGoogle = false;
@@ -115,8 +115,7 @@ public class AuthController : ControllerBase
             UserName = payload.Email,
             FirstName = payload.GivenName,
             LastName = payload.FamilyName,
-            EmailConfirmed = payload.EmailVerified,
-            Role = "[{ \"subject\": \"Auth\", \"action\": \"read\" }]"
+            EmailConfirmed = payload.EmailVerified
         };
 
         var result = await _userManager.CreateAsync(user);
@@ -132,7 +131,7 @@ public class AuthController : ControllerBase
             return Unauthorized("Email is not authorized");
         }
         
-        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email);
         
         var userData = _mapper.Map<AuthDataDto>(user);
         userData.IsGoogle = true;
@@ -177,13 +176,6 @@ public class AuthController : ControllerBase
             FirstName = _config["Admin:Firstname"],
             LastName = _config["Admin:Lastname"],
             EmailConfirmed = true,
-            Role = "[" +
-                   "{ \"subject\": \"Auth\" , \"action\": \"read\"   }," +
-                   "{ \"subject\": \"Admin\", \"action\": \"read\"   }," +
-                   "{ \"subject\": \"Admin\", \"action\": \"create\" }," +
-                   "{ \"subject\": \"Admin\", \"action\": \"update\" }," +
-                   "{ \"subject\": \"Admin\", \"action\": \"delete\" }"  +
-                   "]"
         };
         
         if (!secret.SequenceEqual(_config["Admin:Secret"]))
@@ -208,7 +200,6 @@ public class AuthController : ControllerBase
         goto bad;
         
         update:;
-        old.Role = (old.Role.Length > user.Role.Length) ? old.Role : user.Role ;
         old.EmailConfirmed = old.EmailConfirmed || user.EmailConfirmed;
         var updateResult = await _userManager.UpdateAsync(old);
         if (updateResult.Succeeded)
@@ -256,7 +247,7 @@ public class AuthController : ControllerBase
         return NotFound();
         
         ok:;
-        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email, user.Role);
+        var token = JwtGenerator.GenerateToken(_jwtAuthManager, user.Id, user.Email);
         
         var userData = _mapper.Map<AuthDataDto>(user);
         userData.AccessToken = /**/

@@ -59,8 +59,8 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Array[T]></returns>
     [Casl("Auth:read", "Admin:read")]
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult> GetAction(int id)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult> GetAction(long id)
     {
         return await GenericGet(id);
     }
@@ -107,8 +107,8 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>TItem</returns>
     [Casl("Auth:read", "Admin:read")]
-    [HttpPut("update/{id:int}")]
-    public async Task<ActionResult> UpdateAction(int id, ItemDto item)
+    [HttpPut("update/{id:long}")]
+    public async Task<ActionResult> UpdateAction(long id, ItemDto item)
     {
         return await GenericUpdate(id, item);
     }
@@ -119,8 +119,8 @@ public class
     /// <remarks>(From GenericController)</remarks>
     /// <returns>Null</returns>
     [Casl("Auth:read", "Admin:read")]
-    [HttpDelete("delete/{id:int}")]
-    public async Task<ActionResult> DeleteAction(int id)
+    [HttpDelete("delete/{id:long}")]
+    public async Task<ActionResult> DeleteAction(long id)
     {
         return await GenericDelete(id);
     }

@@ -67,7 +67,7 @@ public class GenericService <TModel, TSetter, TGetter> : IGenericService<TModel,
         return _mapper.Map<List<TGetter>>(await _dbModel.Skip(page * rows).Take(rows).ToListAsync());
     }
 
-    public async Task<TGetter?> GetAsync(BigInteger id)
+    public async Task<TGetter?> GetAsync(long id)
     {
         var item = await _dbModel.FindAsync(id) ?? throw new Error404Exception("Item not found");
         return _mapper.Map<TGetter>(item);
@@ -103,7 +103,7 @@ public class GenericService <TModel, TSetter, TGetter> : IGenericService<TModel,
         return _mapper.Map<List<TGetter>>(items);
     }
 
-    public async Task<TGetter?> UpdateSync(BigInteger id, TSetter updatedItem)
+    public async Task<TGetter?> UpdateSync(long id, TSetter updatedItem)
     {
         var item = await _dbModel.FindAsync(id) ?? throw new Error404Exception("Item not found");
 
@@ -131,7 +131,7 @@ public class GenericService <TModel, TSetter, TGetter> : IGenericService<TModel,
         return _mapper.Map<TGetter>(item);
     }
 
-    public async Task<bool> DeleteSync(BigInteger id)
+    public async Task<bool> DeleteSync(long id)
     {
         var item = await _dbModel.FindAsync(id) ?? throw new Error404Exception("Item not found");
         

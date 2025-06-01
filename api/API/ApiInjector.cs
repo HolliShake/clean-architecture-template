@@ -17,7 +17,7 @@ public class ApiInjector
                 ? configuration.GetConnectionString("win32")
                 : configuration.GetConnectionString("linux")
         ));
-        
+
         // Authentication
         services.AddAuthentication(
                 options =>
@@ -25,13 +25,13 @@ public class ApiInjector
                     options.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
                 });
-            // (uncomment to add google authentication)
-            // .AddGoogle(options =>
-            // {
-            //     options.ClientId = configuration["Auth:Google:ClientId"];
-            //     options.ClientSecret = configuration["Auth:Google:ClientSecret"];
-            // });
-        
+        // (uncomment to add google authentication)
+        // .AddGoogle(options =>
+        // {
+        //     options.ClientId = configuration["Auth:Google:ClientId"];
+        //     options.ClientSecret = configuration["Auth:Google:ClientSecret"];
+        // });
+
         // Cors
         services.AddCors();
 
@@ -61,9 +61,10 @@ public class ApiInjector
                     Type = ReferenceType.SecurityScheme
                 }
             };
-            
+
             options.SwaggerDoc("v1", new OpenApiInfo { Title = configuration["App"], Description = "Api description here...", Version = "v1" });
-          
+            options.EnableAnnotations();
+
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
             if (env.Equals("Staging"))
             {
@@ -81,7 +82,7 @@ public class ApiInjector
             {
                 {securityScheme, Array.Empty<string>()}
             });
-            
+
         });
 
         // File hosting

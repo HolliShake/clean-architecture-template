@@ -14,6 +14,8 @@ public class AppInjector
         #region AUTOMAPPER
             services.AddAutoMapper(typeof(UserMapper));
 			services.AddAutoMapper(typeof(RoleMapper)); /* added by make.py */
+			services.AddAutoMapper(typeof(RoleActionMapper)); /* added by make.py */
+			services.AddAutoMapper(typeof(UserXAccessMapper)); /* added by make.py */
 		#endregion
 
         // Jwt

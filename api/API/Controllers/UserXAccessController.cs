@@ -1,6 +1,7 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using APPLICATION.Dto.Role;
+using APPLICATION.Dto.UserXAccess;
 using APPLICATION.Dto.Response;
 using APPLICATION.IService;
 using DOMAIN.Model;
@@ -8,26 +9,26 @@ using DOMAIN.Model;
 namespace API.Controllers;
 
 [ApiController]
-[Route("Api/[controller]")]
-public class RoleController : GenericController<Role, IRoleService, RoleDto, GetRoleDto>
+[Route("[controller]")]
+public class UserXAccessController : GenericController<UserXAccess, IUserXAccessService, UserXAccessDto, GetUserXAccessDto>
 {
-    public RoleController(IRoleService repo):base(repo)
+    public UserXAccessController(IUserXAccessService repo):base(repo)
     {
     }
 
     /****************** ACTION ROUTES ******************/
-
+    
     /// <summary>
     /// Get all data.
     /// </summary>
-    /// <returns>A list of all roles</returns>
-    /// <response code="200">When all roles are successfully retrieved</response>
+    /// <returns>A list of all UserXAccesss</returns>
+    /// <response code="200">When all UserXAccesss are successfully retrieved</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
     /// <response code="500">When an unexpected error occurs during retrieval</response>
-    [HttpGet("all", Name = "getAllRoles")]
-    [SwaggerOperation(OperationId = "getAllRoles")]
-    [ProducesResponseType<List<GetRoleDto>>(StatusCodes.Status200OK)]
+    [HttpGet("all", Name = "getAllUserXAccesss")]
+    [SwaggerOperation(OperationId = "getAllUserXAccesss")]
+    [ProducesResponseType<List<GetUserXAccessDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -42,13 +43,13 @@ public class RoleController : GenericController<Role, IRoleService, RoleDto, Get
     /// <param name="page">The page number.</param>
     /// <param name="rows">The number of rows per page.</param>
     /// <returns>A paginated data.</returns>
-    /// <response code="200">When the paginated roles are successfully retrieved</response>
+    /// <response code="200">When the paginated UserXAccesss are successfully retrieved</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
     /// <response code="500">When an unexpected error occurs during retrieval</response>
     [HttpGet("paginate")]
-    [SwaggerOperation(OperationId = "getPaginatedRoles")]
-    [ProducesResponseType<PaginationResponseDto<GetRoleDto>>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "getPaginatedUserXAccesss")]
+    [ProducesResponseType<PaginationResponseDto<GetUserXAccessDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -62,14 +63,14 @@ public class RoleController : GenericController<Role, IRoleService, RoleDto, Get
     /// </summary>
     /// <param name="page">The page number to retrieve</param>
     /// <param name="rows">The number of rows per page</param>
-    /// <returns>A chunked collection of roles</returns>
-    /// <response code="200">When the roles are successfully retrieved</response>
+    /// <returns>A chunked collection of UserXAccesss</returns>
+    /// <response code="200">When the UserXAccesss are successfully retrieved</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
     /// <response code="500">When an unexpected error occurs during retrieval</response>
     [HttpGet("chunk/{page:int}/{rows:int}")]
-    [SwaggerOperation(OperationId = "getRolesByChunk")]
-    [ProducesResponseType<List<GetRoleDto>>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "getUserXAccesssByChunk")]
+    [ProducesResponseType<List<GetUserXAccessDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -79,16 +80,16 @@ public class RoleController : GenericController<Role, IRoleService, RoleDto, Get
     }
     
     /// <summary>
-    /// Get specific data (Role) by id.
+    /// Get specific data (UserXAccess) by id.
     /// </summary>
-    /// <param name="id">The ID of the role to retrieve</param>
-    /// <returns>The role with the specified ID</returns>
-    /// <response code="200">When the role is successfully retrieved</response>
-    /// <response code="404">When the role with specified ID is not found</response>
+    /// <param name="id">The ID of the UserXAccess to retrieve</param>
+    /// <returns>The UserXAccess with the specified ID</returns>
+    /// <response code="200">When the UserXAccess is successfully retrieved</response>
+    /// <response code="404">When the UserXAccess with specified ID is not found</response>
     /// <response code="500">When an unexpected error occurs during retrieval</response>
     [HttpGet("{id:long}")]
-    [SwaggerOperation(OperationId = "getRoleById")]
-    [ProducesResponseType<GetRoleDto>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "getUserXAccessById")]
+    [ProducesResponseType<GetUserXAccessDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetAction(long id)
@@ -97,111 +98,111 @@ public class RoleController : GenericController<Role, IRoleService, RoleDto, Get
     }
     
     /// <summary>
-    /// Creates new Role entry.
+    /// Creates new UserXAccess entry.
     /// </summary>
-    /// <param name="item">The role data to create</param>
-    /// <returns>The created role</returns>
-    /// <response code="200">When the role is successfully created</response>
+    /// <param name="item">The UserXAccess data to create</param>
+    /// <returns>The created UserXAccess</returns>
+    /// <response code="200">When the UserXAccess is successfully created</response>
     /// <response code="400">When the provided data is invalid</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
     /// <response code="500">When an unexpected error occurs during creation</response>
     [HttpPost("create")]
-    [SwaggerOperation(OperationId = "createRole")]
-    [ProducesResponseType<GetRoleDto>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "createUserXAccess")]
+    [ProducesResponseType<GetUserXAccessDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> CreateAction(RoleDto item)
+    public async Task<ActionResult> CreateAction(UserXAccessDto item)
     {
         return await GenericCreate(item);
     }
     
     /// <summary>
-    /// Creates multiple instance of Role.
+    /// Creates multiple instance of UserXAccess.
     /// </summary>
-    /// <param name="items">List of role data to create</param>
-    /// <returns>List of created roles</returns>
-    /// <response code="200">When the roles are successfully created</response>
+    /// <param name="items">List of UserXAccess data to create</param>
+    /// <returns>List of created UserXAccesss</returns>
+    /// <response code="200">When the UserXAccesss are successfully created</response>
     /// <response code="400">When the provided data is invalid</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
     /// <response code="500">When an unexpected error occurs during creation</response>
     [HttpPost("insert")]
-    [SwaggerOperation(OperationId = "createAllRoles")]
-    [ProducesResponseType<List<GetRoleDto>>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "createAllUserXAccesss")]
+    [ProducesResponseType<List<GetUserXAccessDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> CreateAllAction(List<RoleDto> items)
+    public async Task<ActionResult> CreateAllAction(List<UserXAccessDto> items)
     {
         return await GenericCreateAll(items);
     }
     
     /// <summary>
-    /// Updates single property of Role.
+    /// Updates single property of UserXAccess.
     /// </summary>
-    /// <param name="id">The ID of the role to patch</param>
-    /// <param name="item">The role property to update</param>
-    /// <returns>The patched role</returns>
-    /// <response code="200">When the role property is successfully updated</response>
+    /// <param name="id">The ID of the UserXAccess to patch</param>
+    /// <param name="item">The UserXAccess property to update</param>
+    /// <returns>The patched UserXAccess</returns>
+    /// <response code="200">When the UserXAccess property is successfully updated</response>
     /// <response code="400">When the provided data is invalid</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
-    /// <response code="404">When the role with specified ID is not found</response>
+    /// <response code="404">When the UserXAccess with specified ID is not found</response>
     /// <response code="500">When an unexpected error occurs during update</response>
     [HttpPatch("patch/{id:long}")]
-    [SwaggerOperation(OperationId = "patchRole")]
-    [ProducesResponseType<GetRoleDto>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "patchUserXAccess")]
+    [ProducesResponseType<GetUserXAccessDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> PatchAction(long id, RoleDto item)
+    public async Task<ActionResult> PatchAction(long id, UserXAccessDto item)
     {
         return await GenericUpdate(id, item);
     }
     
     /// <summary>
-    /// Updates multiple property of Role.
+    /// Updates multiple property of UserXAccess.
     /// </summary>
-    /// <param name="id">The ID of the role to update</param>
-    /// <param name="item">The role data to update</param>
-    /// <returns>The updated role</returns>
-    /// <response code="200">When the role is successfully updated</response>
+    /// <param name="id">The ID of the UserXAccess to update</param>
+    /// <param name="item">The UserXAccess data to update</param>
+    /// <returns>The updated UserXAccess</returns>
+    /// <response code="200">When the UserXAccess is successfully updated</response>
     /// <response code="400">When the provided data is invalid</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
-    /// <response code="404">When the role with specified ID is not found</response>
+    /// <response code="404">When the UserXAccess with specified ID is not found</response>
     /// <response code="500">When an unexpected error occurs during update</response>
     [HttpPut("update/{id:long}")]
-    [SwaggerOperation(OperationId = "updateRole")]
-    [ProducesResponseType<GetRoleDto>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "updateUserXAccess")]
+    [ProducesResponseType<GetUserXAccessDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> UpdateAction(long id, RoleDto item)
+    public async Task<ActionResult> UpdateAction(long id, UserXAccessDto item)
     {
         return await GenericUpdate(id, item);
     }
     
     /// <summary>
-    /// Deletes single Role entry.
+    /// Deletes single UserXAccess entry.
     /// </summary>
-    /// <param name="id">The ID of the role to delete</param>
+    /// <param name="id">The ID of the UserXAccess to delete</param>
     /// <returns>204 No Content response on successful deletion</returns>
-    /// <response code="204">When the role is successfully deleted</response>
+    /// <response code="204">When the UserXAccess is successfully deleted</response>
     /// <response code="401">When the user is not authenticated</response>
     /// <response code="403">When the user is not authorized</response>
-    /// <response code="404">When the role with specified ID is not found</response>
+    /// <response code="404">When the UserXAccess with specified ID is not found</response>
     /// <response code="500">When an unexpected error occurs during deletion</response>
     [HttpDelete("delete/{id:long}")]
-    [SwaggerOperation(OperationId = "deleteRole")]
+    [SwaggerOperation(OperationId = "deleteUserXAccess")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

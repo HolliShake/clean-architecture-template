@@ -7,7 +7,7 @@ set "BUILD_CMD=dotnet build -c release"
 set "MIGRATION_ADD_CMD=dotnet-ef migrations add"
 set "MIGRATION_UPDATE_CMD=dotnet-ef database update"
 set "MIGRATION_REMOVE_CMD=dotnet-ef migrations remove"
-set "PROJECT_ARG=--project ./src/%INFRASTRUCTURE_PROJECT% --startup-project ./src/%API_PROJECT%"
+set "PROJECT_ARG=--project %INFRASTRUCTURE_PROJECT% --startup-project %API_PROJECT%"
 
 rem ===== Build Command =====
 if "%1"=="--build" (

@@ -13,5 +13,4 @@ public class User : IdentityUser
     public string LastName { get; set; }
     public string Address { get; set; }
     public DateTime BirthDate { get; set; }
-    public string Role { get; set; }
 }
