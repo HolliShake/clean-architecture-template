@@ -33,7 +33,15 @@ public class AuthController : ControllerBase
     /// Login attempt.
     /// </summary>
     /// <returns>AuthData</returns>
+    /// <response code="200">When the user is successfully logged in</response>
+    /// <response code="400">When the user is not found</response>
+    /// <response code="401">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during login</response>
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthDataDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> LoginAttempt(AuthDto credential)
     {
         var user = await _userManager.FindByEmailAsync(credential.Email);
@@ -77,7 +85,15 @@ public class AuthController : ControllerBase
     /// Login attempt via google.
     /// </summary>
     /// <returns>AuthData</returns>
+    /// <response code="200">When the user is successfully logged in</response>
+    /// <response code="400">When the user is not found</response>
+    /// <response code="401">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during login</response>
     [HttpPost("google-signin")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthDataDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GoogleLogin(GoogleDto google)
     {
         var settings = new GoogleJsonWebSignature.ValidationSettings
@@ -147,7 +163,13 @@ public class AuthController : ControllerBase
     /// Register attempt.
     /// </summary>
     /// <returns>Null|Errors</returns>
+    /// <response code="204">When the user is successfully registered</response>
+    /// <response code="400">When the user is not found</response>
+    /// <response code="500">When an unexpected error occurs during registration</response>
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> Register(AuthRegisterDto registrationForm)
     {
         var result = await _userManager.CreateAsync(_mapper.Map<User>(registrationForm), registrationForm.Password);
@@ -165,7 +187,13 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <param name="secret">The secret key.</param>
     /// <returns>The admin user.</returns>
+    /// <response code="200">When the admin user is successfully generated</response>
+    /// <response code="400">When the admin user is not found</response>
+    /// <response code="500">When an unexpected error occurs during generation</response>
     [HttpPost("generate/{secret}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(User))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GenerateAdmin(string secret)
     {
         var old = await _userManager.FindByEmailAsync(_config["Admin:Email"]);
@@ -218,7 +246,15 @@ public class AuthController : ControllerBase
     /// ReAuthenticate every page refresh (must use authentication context in UI).
     /// </summary>
     /// <returns>AuthData|Errors</returns>
+    /// <response code="200">When the user is successfully authenticated</response>
+    /// <response code="400">When the user is not found</response>
+    /// <response code="401">When the user is not authorized</response>
+    /// <response code="500">When an unexpected error occurs during authentication</response>
     [HttpGet("authenticate")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthDataDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> Authenticate()
     {
         var accessToken = HttpContext.Request.Headers["Authorization"].ToString().Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
