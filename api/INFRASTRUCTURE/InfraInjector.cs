@@ -20,7 +20,7 @@ public class InfraInjector
             services.AddScoped<IRoleRepository, RoleRepository>(); /* added by make.py */
             services.AddScoped<IRoleActionRepository, RoleActionRepository>(); /* added by make.py */
             services.AddScoped<IUserXAccessRepository, UserXAccessRepository>(); /* added by make.py */
-        #endregion
+		#endregion
 
         // Inject services
         #region SERVICES
