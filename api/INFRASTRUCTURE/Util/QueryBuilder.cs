@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using INFRASTRUCTURE.ExceptionHandler;
 
-namespace Infrastructure.Util;
+namespace INFRASTRUCTURE.Util;
 
 
 public class QueryBuilder<TModel> where TModel : class

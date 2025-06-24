@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
+using APPLICATION.IService;
 using APPLICATION.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,8 @@ public class Access
 public class CaslAttribute:Attribute, IAuthorizationFilter
 {
     private readonly string[] _validAccessList;
-    private IJwtAuthManager _jwtAuthManager;
+    private IJwtAuthManager? _jwtAuthManager;
+    private IUserXAccessService? _userXAccessService;
 
     public CaslAttribute(params string[] accessList)
     {
@@ -31,42 +33,33 @@ public class CaslAttribute:Attribute, IAuthorizationFilter
             return;
         }
         
-        var accessToken = context.HttpContext.Request.Headers["Authorization"].ToString().Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
-       
-        _jwtAuthManager = (IJwtAuthManager) context.HttpContext.RequestServices.GetService(typeof(IJwtAuthManager));
+        var accessToken = context.HttpContext.Request.Headers.Authorization
+            .ToString()
+            .Replace($"{JwtBearerDefaults.AuthenticationScheme} ", String.Empty);
 
-        if (_jwtAuthManager == null)
+        
+
+        _jwtAuthManager ??= (IJwtAuthManager?) context.HttpContext.RequestServices.GetService(typeof(IJwtAuthManager));
+
+        _userXAccessService ??= (IUserXAccessService?) context.HttpContext.RequestServices.GetService(typeof(IUserXAccessService));
+
+        // If the jwtAuthManager is not found, return unauthorized
+        if (_jwtAuthManager == null || _userXAccessService == null)
         {
             goto bad;
         }
 
-        if (accessToken.Length <= 0)
+        if (string.IsNullOrEmpty(accessToken))
         {
             goto bad;
         }
         
         var principal = _jwtAuthManager.DecodeJwtToken(accessToken);
-        var role = principal.Item1.FindFirst(c => c.Type == ClaimTypes.Role)?.Value;
+        var currentUserId = principal.Item1.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         
-        if (role != null)
+        if (!string.IsNullOrEmpty(currentUserId))
         {
-            var json = JsonSerializer.Deserialize<List<Access>>(role);
-
-            int matches = 0;
-            for (var i = 0; i < json!.Count;i++)
-            {
-                var key = json[i].subject;
-                var val = json[i].action;
-                var access = $"{key}:{val}";
-
-                if (_validAccessList.Contains(access))
-                {
-                    ++matches;
-                    break;
-                }
-            }
-
-            if (matches <= 0)
+            if (!_userXAccessService.UserHasAccess(currentUserId, _validAccessList))
             {
                 goto bad;
             }

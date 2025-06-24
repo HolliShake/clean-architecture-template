@@ -1,6 +1,8 @@
-﻿using APPLICATION.IService;
+﻿using APPLICATION.IRepository;
+using APPLICATION.IService;
 using DOMAIN.Model;
 using INFRASTRUCTURE.Data;
+using INFRASTRUCTURE.Repository;
 using INFRASTRUCTURE.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -12,6 +14,14 @@ public class InfraInjector
 {
     public static void Inject(IServiceCollection services, ConfigurationManager configuration)
     {
+        // Inject repositories
+        #region REPOSITORIES
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>(); /* added by make.py */
+            services.AddScoped<IRoleActionRepository, RoleActionRepository>(); /* added by make.py */
+            services.AddScoped<IUserXAccessRepository, UserXAccessRepository>(); /* added by make.py */
+        #endregion
+
         // Inject services
         #region SERVICES
             services.AddScoped<IUserService, UserService>();

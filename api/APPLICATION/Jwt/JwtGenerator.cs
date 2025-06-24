@@ -4,11 +4,11 @@ namespace APPLICATION.Jwt;
 
 public abstract class JwtGenerator
 {
-    public static JwtAuthResult GenerateToken(IJwtAuthManager ijwAuthManager, string id, string userEmail)
+    public static JwtAuthResult GenerateToken(IJwtAuthManager ijwAuthManager, string userId, string userEmail)
     {
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, id),
+            new Claim(ClaimTypes.NameIdentifier, userId),
             new Claim(ClaimTypes.Email, userEmail),
         };
 

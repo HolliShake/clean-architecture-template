@@ -8,10 +8,17 @@ using DOMAIN.Model;
 
 namespace API.Controllers;
 
+/// <summary>
+/// Controller for the UserXAccess model.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class UserXAccessController : GenericController<UserXAccess, IUserXAccessService, UserXAccessDto, GetUserXAccessDto>
 {
+    /// <summary>
+    /// Constructor for the UserXAccessController.
+    /// </summary>
+    /// <param name="repo"></param>
     public UserXAccessController(IUserXAccessService repo):base(repo)
     {
     }

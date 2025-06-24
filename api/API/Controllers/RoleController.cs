@@ -7,10 +7,17 @@ using DOMAIN.Model;
 
 namespace API.Controllers;
 
+/// <summary>
+/// Controller for the Role model.
+/// </summary>
 [ApiController]
 [Route("Api/[controller]")]
 public class RoleController : GenericController<Role, IRoleService, RoleDto, GetRoleDto>
 {
+    /// <summary>
+    /// Constructor for the RoleController.
+    /// </summary>
+    /// <param name="repo"></param>
     public RoleController(IRoleService repo):base(repo)
     {
     }
