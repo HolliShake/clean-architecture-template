@@ -218,7 +218,7 @@ public class AuthController : ControllerBase
         }
 
         // Create
-        var result = await _userManager.CreateAsync(user);
+        var result = await _userManager.CreateAsync(user, _config["Admin:Password"] ?? "@dmin1234");
 
         if (result.Succeeded)
         {

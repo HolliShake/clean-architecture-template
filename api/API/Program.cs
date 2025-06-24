@@ -9,8 +9,15 @@ using Microsoft.Extensions.FileProviders;
 
 namespace API;
 
+/// <summary>
+/// Program class for the API.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// Main method for the API.
+    /// </summary>
+    /// <param name="args"></param>
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);

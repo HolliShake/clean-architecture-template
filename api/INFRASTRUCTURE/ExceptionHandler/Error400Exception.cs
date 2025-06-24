@@ -1,5 +1,3 @@
-using System;
-
 namespace INFRASTRUCTURE.ExceptionHandler;
 
 public class Error400Exception : Exception
