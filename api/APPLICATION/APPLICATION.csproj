@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <Folder Include="Dto\" />
+	  <Folder Include="IRepository\" />
+	  <Folder Include="IService\" />
 	  <Folder Include="Jwt\" />
+    <Folder Include="Mapper\" />
   </ItemGroup>
 
   <ItemGroup>

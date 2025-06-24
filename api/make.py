@@ -35,6 +35,15 @@ KEY_DTO = "DTO"
 KEY_DTO_PATH = "PATH"
 KEY_DTO_LIST_PATH = "LIST_PATH"
 # 
+KEY_REPOSITORY = "REPOSITORY"
+KEY_REPOSITORY_IPATH = "IPATH"
+KEY_REPOSITORY_PATH = "PATH"
+KEY_REPOSITORY_IGENERIC_NAME = "IGENERIC_NAME"
+KEY_REPOSITORY_GENERIC_NAME = "GENERIC_NAME"
+KEY_REPOSITORY_LIST_PATH = "LIST_PATH"
+KEY_REPOSITORY_REPOSITORY_VARIABLE_NAME = "REPOSITORY_VARIABLE"
+KEY_REPOSITORY_LIST_PATH = "LIST_PATH"
+# 
 KEY_SERVICE = "SERVICE"
 KEY_SERVICE_IPATH = "IPATH"
 KEY_SERVICE_PATH = "PATH"
@@ -69,6 +78,14 @@ CONFIG = ({
     KEY_DTO: {
         KEY_DTO_PATH: "APPLICATION_PATH/Dto",
         KEY_DTO_LIST_PATH: "APPLICATION_PATH/AppInjector.cs"
+    },
+    KEY_REPOSITORY: {
+        KEY_REPOSITORY_IPATH: "APPLICATION_PATH/IRepository",
+        KEY_REPOSITORY_PATH: "INFRASTRUCTURE_PATH/Repository",
+        KEY_REPOSITORY_IGENERIC_NAME: "IGenericRepository",
+        KEY_REPOSITORY_GENERIC_NAME: "GenericRepository",
+        KEY_REPOSITORY_REPOSITORY_VARIABLE_NAME: "services",
+        KEY_REPOSITORY_LIST_PATH: "INFRASTRUCTURE_PATH/InfraInjector.cs"
     },
     KEY_SERVICE: {
         KEY_SERVICE_IPATH: "APPLICATION_PATH/IService",
@@ -166,6 +183,13 @@ assert_type_namespace(KEY_DTO, dict)
 assert_type_namespace('DTO.PATH', str)
 assert_type_namespace('DTO.LIST_PATH', str)
 assert_type_namespace(KEY_SERVICE, dict)
+assert_type_namespace(KEY_REPOSITORY, dict)
+assert_type_namespace('REPOSITORY.IPATH', str)
+assert_type_namespace('REPOSITORY.PATH', str)
+assert_type_namespace('REPOSITORY.IGENERIC_NAME', str)
+assert_type_namespace('REPOSITORY.GENERIC_NAME', str)
+assert_type_namespace('REPOSITORY.REPOSITORY_VARIABLE', str)
+assert_type_namespace('REPOSITORY.LIST_PATH', str)
 assert_type_namespace('SERVICE.IPATH', str)
 assert_type_namespace('SERVICE.PATH', str)
 assert_type_namespace('SERVICE.IGENERIC_NAME', str)
@@ -188,6 +212,7 @@ PATH_API_CONTROLLER=resolve_path(get_value_from_namespace('CONTROLLERS.PATH'))
 # APP
 PATH_APPLICATION=resolve_path('APPLICATION_PATH')
 PATH_APPLICATION_DTO=resolve_path(get_value_from_namespace('DTO.PATH'))
+PATH_APPLICATION_IREPOSITORY=resolve_path(get_value_from_namespace('REPOSITORY.IPATH'))
 PATH_APPLICATION_ISERVICE=resolve_path(get_value_from_namespace('SERVICE.IPATH'))
 PATH_APPLICATION_MAPPER=resolve_path(get_value_from_namespace('MAPPER.PATH'))
 # DOM
@@ -196,10 +221,12 @@ PATH_DOMAIN_MODEL=resolve_path(get_value_from_namespace('MODEL.PATH'))
 # INF
 PATH_INFRASTRUCTURE=resolve_path('INFRASTRUCTURE_PATH')
 PATH_INFRASTRUCTURE_DATA=resolve_path(get_value_from_namespace('DATA.PATH'))
+PATH_INFRASTRUCTURE_REPOSITORY=resolve_path(get_value_from_namespace('REPOSITORY.PATH'))
 PATH_INFRASTRUCTURE_SERVICE=resolve_path(get_value_from_namespace('SERVICE.PATH'))
 
 # 
 PATH_MAPPER_LIST_PATH=resolve_path(get_value_from_namespace('MAPPER.LIST_PATH'))
+PATH_REPOSITORY_LIST_PATH=resolve_path(get_value_from_namespace('REPOSITORY.LIST_PATH'))
 PATH_SERVICE_LIST_PATH=resolve_path(get_value_from_namespace('SERVICE.LIST_PATH'))
 
 VALID_SEARCH_PATHS = [
@@ -207,6 +234,7 @@ VALID_SEARCH_PATHS = [
     PATH_API_CONTROLLER,
     PATH_APPLICATION,
     PATH_APPLICATION_DTO,
+    PATH_APPLICATION_IREPOSITORY,
     PATH_APPLICATION_ISERVICE,
     PATH_APPLICATION_MAPPER,
     PATH_DOMAIN,
@@ -216,6 +244,7 @@ VALID_SEARCH_PATHS = [
     PATH_INFRASTRUCTURE_SERVICE,
     # 
     PATH_MAPPER_LIST_PATH,
+    PATH_REPOSITORY_LIST_PATH,
     PATH_SERVICE_LIST_PATH
 ]
 
@@ -233,12 +262,14 @@ MAKE INFO:
         - CONTROLLER PATH: {}
     - APPLICATION PATH: {}
         - DTO PATH: {}
+        - IREPOSITORY PATH: {}
         - ISERVICE PATH: {}
         - MAPPER PATH: {}
     - DOMAIN PATH: {}
         - MODEL PATH: {}
     - INFRASTRUCTURE PATH: {}
         - DATA PATH: {}
+        - REPOSITORY PATH: {}
         - SERVICE PATH: {}
       
     +---------------------------------+
@@ -263,15 +294,18 @@ MAKE INFO:
     PATH_API_CONTROLLER,
     PATH_APPLICATION,
     PATH_APPLICATION_DTO,
+    PATH_APPLICATION_IREPOSITORY,
     PATH_APPLICATION_ISERVICE,
     PATH_APPLICATION_MAPPER,
     PATH_DOMAIN,
     PATH_DOMAIN_MODEL,
     PATH_INFRASTRUCTURE,
     PATH_INFRASTRUCTURE_DATA,
+    PATH_INFRASTRUCTURE_REPOSITORY,
     PATH_INFRASTRUCTURE_SERVICE,
     # OTHER
     PATH_MAPPER_LIST_PATH,
+    PATH_REPOSITORY_LIST_PATH,
     PATH_SERVICE_LIST_PATH
 ))
 
@@ -285,10 +319,17 @@ using {model-namespace};
 
 namespace {controller-namespace};
 
+/// <summary>
+/// Controller for the {controller-name} model.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class {controller-name}Controller : {generic-name}<{controller-name}, I{controller-name}Service, {controller-name}Dto, Get{controller-name}Dto>
 {
+    /// <summary>
+    /// Constructor for the {controller-name}Controller.
+    /// </summary>
+    /// <param name="repo"></param>
     public {controller-name}Controller(I{controller-name}Service repo):base(repo)
     {
     }
@@ -492,9 +533,37 @@ public class {controller-name}Controller : {generic-name}<{controller-name}, I{c
 }
 """
 
+IREPOSITORY_TEMPLATE = """
+using {dto-namespace}.{irepository-name};
+using {model-namespace};
+
+namespace {irepository-namespace};
+
+public interface I{irepository-name}Repository : {igeneric-name}<{repository-name}, {repository-name}Dto, Get{repository-name}Dto>
+{
+}
+"""
+
+REPOSITORY_TEMPLATE = """
+using AutoMapper;
+using {dto-namespace}.{repository-name};
+using {irepository-namespace};
+using {model-namespace};
+using {data-namespace};
+
+namespace {repository-namespace};
+
+public class {repository-name}Repository:{generic-name}<{repository-name}, {repository-name}Dto, Get{repository-name}Dto>, I{repository-name}Repository
+{
+    public {repository-name}Repository(AppDbContext context, IMapper mapper):base(context, mapper)
+    {
+    }
+}
+
+"""
+
 ISERVICE_TEMPLATE = """
 using {dto-namespace}.{service-name};
-using {dto-namespace}.Response;
 using {model-namespace};
 
 namespace {iservice-namespace};
@@ -505,17 +574,16 @@ public interface I{service-name}Service:{igeneric-name}<{service-name}, {service
 """
 
 SERVICE_TEMPLATE = """
-using AutoMapper;
-using {data-namespace};
 using {dto-namespace}.{service-name};
 using {iservice-namespace};
 using {model-namespace};
+using {irepository-namespace};
 
 namespace {service-namespace};
 
-public class {service-name}Service:{generic-name}<{service-name}, {service-name}Dto, Get{service-name}Dto>, I{service-name}Service
+public class {service-name}Service:{generic-name}<I{service-name}Repository, {service-name}, {service-name}Dto, Get{service-name}Dto>, I{service-name}Service
 {
-    public {service-name}Service(AppDbContext context, IMapper mapper):base(context, mapper)
+    public {service-name}Service(I{service-name}Repository repository):base(repository)
     {
     }
 }
@@ -599,6 +667,54 @@ def to_new_class(class_name, new_class_name):
 
     return "public class " + new_class_name + "\n" + class_content[index:]
 
+def get_repository_list():
+    content = ""
+    try:
+        fobj = open(PATH_REPOSITORY_LIST_PATH, "r", encoding="utf-8")
+        content = fobj.read()
+        fobj.close()
+    except Exception as e:
+        print("get_repository_list::error: failed to read repository list.")
+        exit(1)
+    
+    SEARCH_KEY="#region REPOSITORIES"
+    SEACRH_END="#endregion"
+
+    index_start = content.find(SEARCH_KEY)
+    index_ended = content.find(SEACRH_END, max(index_start, 0))
+
+    if  index_start == -1 or index_ended == -1:
+        print("get_repository_list::error: REPOSITORIES region not found.")
+        exit(1)
+
+    index = 0
+    new_content = ""
+
+    tab_index = 0
+
+    while (index < len(content)):
+        if  index >= index_start and index <= index_ended:
+            copy = index
+            while (copy < index_ended):
+                new_content += content[copy]
+                copy += 1
+            
+            new_content += ("\t{new-repository}\n")
+            new_content += ("\t" * tab_index)
+
+            index = index_ended
+            while (index < (index_ended + len(SEACRH_END))):
+                new_content += content[index]
+                index += 1
+        else:
+            if  content[index] == "{":
+                tab_index += 1
+
+            new_content += content[index]
+            index += 1
+
+    return new_content
+
 def get_services_list():
     content = ""
     try:
@@ -613,7 +729,7 @@ def get_services_list():
     SEACRH_END="#endregion"
 
     index_start = content.find(SEARCH_KEY)
-    index_ended = content.find(SEACRH_END)
+    index_ended = content.find(SEACRH_END, max(index_start, 0))
 
     if  index_start == -1 or index_ended == -1:
         print("get_services_list::error: SERVICES region not found.")
@@ -661,7 +777,7 @@ def get_automapper_list():
     SEACRH_END="#endregion"
 
     index_start = content.find(SEARCH_KEY)
-    index_ended = content.find(SEACRH_END)
+    index_ended = content.find(SEACRH_END, max(index_start, 0))
 
     if  index_start == -1 or index_ended == -1:
         print("get_services_list::error: AUTOMAPPER region not found.")
@@ -722,6 +838,14 @@ def make_controller(_controllerName):
         print("make_controller::error: failed to create controller.")
         exit(1)
 
+def get_irepository_path(_repositoryName):
+    repositoryName = capitalize(_repositoryName)
+    return join(PATH_APPLICATION_IREPOSITORY, f"I{repositoryName}Repository.cs")
+
+def get_repository_path(_repositoryName):
+    repositoryName = capitalize(_repositoryName)
+    return join(PATH_INFRASTRUCTURE_REPOSITORY, f"{repositoryName}Repository.cs")
+
 def get_iservice_path(_serviceName):
     serviceName = capitalize(_serviceName)
     return join(PATH_APPLICATION_ISERVICE, f"I{serviceName}Service.cs")
@@ -729,6 +853,87 @@ def get_iservice_path(_serviceName):
 def get_service_path(_serviceName):
     serviceName = capitalize(_serviceName)
     return join(PATH_INFRASTRUCTURE_SERVICE, f"{serviceName}Service.cs")
+
+def make_repository(_repositoryName):
+    repositoryName = capitalize(_repositoryName)
+
+    irepository_exists = False
+
+    try:
+        if  not (get_value_from_namespace('REPOSITORY.IGENERIC_NAME') + '.cs') in listdir(PATH_APPLICATION_IREPOSITORY):
+            print("make_repository::error: {}.cs not found at {}.".format(get_value_from_namespace('REPOSITORY.IGENERIC_NAME'), PATH_APPLICATION_IREPOSITORY))
+            exit(1)
+
+        if  not exists(get_irepository_path(_repositoryName)):
+            with open(get_irepository_path(_repositoryName), "w") as f:
+                f.write(IREPOSITORY_TEMPLATE
+                    .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
+                    .replace("{irepository-namespace}", get_name_space_from_root(PATH_APPLICATION_IREPOSITORY))
+                    .replace("{irepository-name}", repositoryName)
+                    .replace("{igeneric-name}", get_value_from_namespace('REPOSITORY.IGENERIC_NAME'))
+                    .replace("{repository-name}", repositoryName)
+                    .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL)))
+                f.close()
+        
+        else:
+            irepository_exists = True
+            print("make_repository::warning: repository interface already exists (skipped).")
+    except Exception as e:
+        print("make_repository::error: failed to create repository interface {}.".format(get_irepository_path(_repositoryName)))
+        exit(1)
+
+    repository_exists = False
+
+    try:
+        if  not (get_value_from_namespace('REPOSITORY.GENERIC_NAME') + '.cs') in listdir(PATH_INFRASTRUCTURE_REPOSITORY):
+            print("make_repository::error: {}.cs not found at {}.".format(get_value_from_namespace('REPOSITORY.GENERIC_NAME'), PATH_INFRASTRUCTURE_REPOSITORY))
+            exit(1)
+        
+        if  not exists(get_repository_path(_repositoryName)):
+            with open(get_repository_path(_repositoryName), "w") as f:
+                f.write(REPOSITORY_TEMPLATE
+                    .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
+                    .replace("{irepository-namespace}", get_name_space_from_root(PATH_APPLICATION_IREPOSITORY))
+                    .replace("{repository-namespace}", get_name_space_from_root(PATH_INFRASTRUCTURE_REPOSITORY))
+                    .replace("{generic-name}", get_value_from_namespace('REPOSITORY.GENERIC_NAME'))
+                    .replace("{repository-name}", repositoryName)
+                    .replace("{data-namespace}", get_name_space_from_root(PATH_INFRASTRUCTURE_DATA))
+                    .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL)))
+                f.close()
+        else:
+            repository_exists = True
+            print("make_repository::warning: repository implementation already exists (skipped).")
+    except Exception as e:
+        print("make_repository::error: failed to create repository implementation {}.".format(get_repository_path(_repositoryName)))
+        exit(1)
+
+    if  repository_exists and irepository_exists:
+        print("make_repository::info: repository already exists (repository list not updated, skipped).")
+        return
+    
+    BAK = PATH_REPOSITORY_LIST_PATH + ".bak"
+    try:
+        fobj0 = open(PATH_REPOSITORY_LIST_PATH, "r", encoding="utf-8")
+        fobj1 = open(BAK, "w", encoding="utf-8")
+        content = fobj0.read()
+        fobj1.write(content)
+        fobj0.close()
+        fobj1.close()
+    except Exception as e:
+        print("make_repository::error: failed to backup repository list.")
+        exit(1)
+
+    # Save
+    LINE = get_value_from_namespace('REPOSITORY.REPOSITORY_VARIABLE') + ".AddScoped<I{}Repository, {}Repository>(); /* added by make.py */".format(repositoryName, repositoryName)
+    NEW_REPOSITORY_LIST = get_repository_list().replace("{new-repository}", LINE)
+
+    try:
+        fobj = open(PATH_REPOSITORY_LIST_PATH, "w", encoding="utf-8")
+        fobj.write(NEW_REPOSITORY_LIST)
+        fobj.close()
+    except Exception as e:
+        print("make_repository::error: failed to write repository list.")
+        exit(1)
 
 def make_service(_serviceName):
     serviceName = capitalize(_serviceName)
@@ -769,6 +974,7 @@ def make_service(_serviceName):
                     .replace("{dto-namespace}", get_name_space_from_root(PATH_APPLICATION_DTO))
                     .replace("{generic-name}", get_value_from_namespace('SERVICE.GENERIC_NAME'))
                     .replace("{iservice-namespace}", get_name_space_from_root(PATH_APPLICATION_ISERVICE))
+                    .replace("{irepository-namespace}", get_name_space_from_root(PATH_APPLICATION_IREPOSITORY))
                     .replace("{model-namespace}", get_name_space_from_root(PATH_DOMAIN_MODEL))
                     .replace("{data-namespace}", get_name_space_from_root(PATH_INFRASTRUCTURE_DATA))
                     .replace("{service-namespace}", get_name_space_from_root(PATH_INFRASTRUCTURE_SERVICE))
@@ -904,13 +1110,15 @@ if  args.model:
     if  not ((capitalize(str(model)) + '.cs') in listdir(PATH_DOMAIN_MODEL)):
         print("make::error: model {} not found at {}.".format(capitalize(str(model)) + '.cs', PATH_DOMAIN_MODEL))
         exit(1)
-    print("make::info:[step 1 of 4]: running make service...")
+    print("make::info:[step 1 of 5]: running make service...")
     make_controller(model)
-    print("make::info:[step 2 of 4]: running make service...")
+    print("make::info:[step 2 of 5]: running make repository...")
+    make_repository(model)
+    print("make::info:[step 3 of 5]: running make service...")
     make_service(model)
-    print("make::info:[step 3 of 4]: running make dto...")
+    print("make::info:[step 4 of 5]: running make dto...")
     make_dto(model)
-    print("make::info:[step 4 of 4]: running make mapper...")
+    print("make::info:[step 5 of 5]: running make mapper...")
     make_mapper(model)
     print("make::info: done.")
     if not model in CONFIG["MODEL"]["LIST"]: CONFIG["MODEL"]["LIST"].append(model)

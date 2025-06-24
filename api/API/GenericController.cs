@@ -1,6 +1,4 @@
-
 using APPLICATION.IService;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API;
@@ -16,6 +14,10 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
 {
     protected readonly IServiceProvider _repo;
 
+    /// <summary>
+    /// Constructor for the GenericController.
+    /// </summary>
+    /// <param name="repo"></param>
     public GenericController(IServiceProvider repo)
     {
         _repo = repo;
@@ -90,7 +92,18 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <returns>The updated data.</returns>
     protected async Task<ActionResult> GenericUpdate(long id, ItemDto item)
     {
-        return Ok(await _repo.UpdateSync(id, item));
+        return Ok(await _repo.UpdateAsync(id, item));
+    }
+
+    /// <summary>
+    /// Update a data.
+    /// </summary>
+    /// <param name="id">The id of the data.</param>
+    /// <param name="item">The updated data.</param>
+    /// <returns>The updated data.</returns>
+    protected async Task<ActionResult> GenericUpdate(string id, ItemDto item)
+    {
+        return Ok(await _repo.UpdateAsync(id, item));
     }
 
     /// <summary>
@@ -100,6 +113,16 @@ public class GenericController <TModel, IServiceProvider, ItemDto, GetDto> : Con
     /// <returns>The deleted data.</returns>
     protected async Task<ActionResult> GenericDelete(long id)
     {
-        return Ok(await _repo.DeleteSync(id));
+        return Ok(await _repo.DeleteAsync(id));
+    }
+
+    /// <summary>
+    /// Delete a data.
+    /// </summary>
+    /// <param name="id">The id of the data.</param>
+    /// <returns>The deleted data.</returns>
+    protected async Task<ActionResult> GenericDelete(string id)
+    {
+        return Ok(await _repo.DeleteAsync(id));
     }
 }

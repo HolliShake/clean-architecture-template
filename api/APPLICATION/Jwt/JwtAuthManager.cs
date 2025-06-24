@@ -60,9 +60,9 @@ public class JwtAuthManager : IJwtAuthManager
         {
             UserName = userEmail,
             TokenString = GenerateRefreshTokenString(),
-            // ExpireAt = now.AddDays(_jwtTokenConfig.RefreshTokenExpiration)
             ExpireAt = now.AddDays(1)
         };
+        
         _usersRefreshTokens.AddOrUpdate(refreshToken.TokenString, refreshToken, (_, _) => refreshToken);
 
         return new JwtAuthResult

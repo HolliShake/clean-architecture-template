@@ -1,15 +1,13 @@
-
-using AutoMapper;
-using INFRASTRUCTURE.Data;
 using APPLICATION.Dto.RoleAction;
 using APPLICATION.IService;
 using DOMAIN.Model;
+using APPLICATION.IRepository;
 
 namespace INFRASTRUCTURE.Service;
 
-public class RoleActionService:GenericService<RoleAction, RoleActionDto, GetRoleActionDto>, IRoleActionService
+public class RoleActionService:GenericService<IRoleActionRepository, RoleAction, RoleActionDto, GetRoleActionDto>, IRoleActionService
 {
-    public RoleActionService(AppDbContext context, IMapper mapper):base(context, mapper)
+    public RoleActionService(IRoleActionRepository repository):base(repository)
     {
     }
 }

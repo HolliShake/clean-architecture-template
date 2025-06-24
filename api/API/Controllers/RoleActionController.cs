@@ -7,10 +7,18 @@ using DOMAIN.Model;
 
 namespace API.Controllers;
 
+
+/// <summary>
+/// Controller for the RoleAction model.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class RoleActionController : GenericController<RoleAction, IRoleActionService, RoleActionDto, GetRoleActionDto>
 {
+    /// <summary>
+    /// Constructor for the RoleActionController.
+    /// </summary>
+    /// <param name="repo"></param>
     public RoleActionController(IRoleActionService repo):base(repo)
     {
     }

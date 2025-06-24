@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using API;
 using APPLICATION;
 using INFRASTRUCTURE;
 using INFRASTRUCTURE.ExceptionHandler;
@@ -10,8 +9,15 @@ using Microsoft.Extensions.FileProviders;
 
 namespace API;
 
+/// <summary>
+/// Program class for the API.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// Main method for the API.
+    /// </summary>
+    /// <param name="args"></param>
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -77,6 +83,7 @@ public static class Program
                     Error400Exception => StatusCodes.Status400BadRequest,
                     Error401Exception => StatusCodes.Status401Unauthorized,
                     Error404Exception => StatusCodes.Status404NotFound,
+                    Error500Exception => StatusCodes.Status500InternalServerError,
                     _ => StatusCodes.Status500InternalServerError
                 };
 
